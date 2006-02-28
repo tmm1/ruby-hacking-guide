@@ -373,8 +373,8 @@ As in @Qnil@ only the second lower bit is 1, in @~Qnil@ only the second bit is
 0. Then only @Qfalse@ and @Qnil@ become true with a bitwise and.
 
 @!=0@ has be added to be certain to only have 0 or 1, to satisfy the
-requirements of the glib library that only wants 0 or 1 (<a
-href="http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-dev/11049">[ruby-dev:11049]</a>).
+requirements of the glib library that only wants 0 or 1
+("[ruby-dev:11049]":http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-dev/11049).
 
 By the way, what is the '@Q@' of @Qnil@? 'R' I would have understood but why
 '@Q@'? When I asked, the answer was "Because it's like that in Emacs". I did
