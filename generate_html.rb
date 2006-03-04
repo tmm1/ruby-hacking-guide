@@ -1,4 +1,7 @@
-require 'rubygems'
+begin
+    require 'rubygems'
+rescue LoadError
+end
 require 'redcloth'
 
 HEADER = <<EOS
@@ -25,7 +28,7 @@ Dir.glob("*.txt").each do |file|
     title = if md = /h1\.\s*(.+)$/.match(r)
         md[1]
     else
-        $STDERR.puts "no h1 section on file #{file}"
+        STDERR.puts "no h1 section on file #{file}"
         exit 1
     end
     html = file.sub(/txt$/, 'html')
