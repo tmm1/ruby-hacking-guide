@@ -4,31 +4,31 @@ h2. Structure of Ruby objects
 
 h3. Guideline
 
-Starting from this chapter we'll finally explore @ruby@'s source code. We'll
-start with the declaration of the objects' structures.
+Starting from this chapter we will explore the @ruby@ source code, starting by
+studying the declaration of objects structures.
 
-Then, what are the required conditions so that objects can exist as such? Many
-explanations can be done, but in truth there are three conditions that must be
-respected. They are the following:
+What are the required conditions to make sure objects can exist? Many
+explanations can be given but in reality there are three conditions that must
+be respected:
 
 # Being able to differentiate itself from the rest (having an identity)
 # Being able to reply to requests (methods)
-# Having an internal state (instance variables)
+# Keeping an internal state (instance variables)
 
-In this chapter, we are going to confirm these 3 features one by one.
+In this chapter, we are going to confirm these three features one by one.
 
-The file on which we will have the most interest will be @ruby.h@, but we will
-also look briefly at other files like @object.c@, @class.c@ or @variable.c@.
+The most interesting file in this quest will be @ruby.h@, but we will also
+briefly look at other files such as @object.c@, @class.c@ or @variable.c@.
 
 h3. Structure of @VALUE@ and objects
 
-In @ruby@, an object's content is expressed by a structure, always handled via
-a pointer. A different type of structure is used for each class, but the
-pointer's type will always be @VALUE@ (diagram 1).
+In @ruby@, the contents of an object is expressed by a @C@ structure, always
+handled via a pointer. A different kind of structure is used for each class,
+but the pointer type will always be @VALUE@ (diagram 1).
 
 !images/ch_object_value_en.png(VALUE)!
 
-The definition of @VALUE@ is like this:
+Here is the definition of @VALUE@:
 
 <pre>
   71  typedef unsigned long VALUE;
@@ -36,17 +36,15 @@ The definition of @VALUE@ is like this:
 (ruby.h)
 </pre>
 
-In practice, a @VALUE@ must be casted to different types of pointer to
-structure. Therefore if an @unsigned long@ and a pointer are of different
-size, @ruby@ won't work well. Strictly speaking, it won't work if a type of
-pointer bigger that @sizeof(unsigned long)@ exists. Fortunately, no recent
-machine has this property, even if some time ago there were quite a few of
-them.
+In practice, a @VALUE@ must be casted to different types of structure pointer.
+Therefore if an @unsigned long@ and a pointer have a different size, @ruby@
+will not work well. Strictly speaking, it will not work for pointer types
+bigger that @sizeof(unsigned long)@. Fortunately, no recent machine feature
+this capability, even if some time ago there were quite a few of them.
 
-Concerning the structures, there are a few types of them. Depending on the
-class of object one of the following is used:
+Several structures are available according to object classes:
 
-| @struct RObject@		| all the things for which none of the following 
+| @struct RObject@		| all things for which none of the following 
 						  applies |
 | @struct RClass@		| class object |
 | @struct RFloat@		| small numbers |
@@ -61,7 +59,7 @@ class of object one of the following is used:
 | @struct RBignum@		| big integers |
 
 For example, for an string object, @struct RString@ is used, so we will have
-something like diagram 2.
+something like the following.
 
 !images/ch_object_string_en.png(string)!
 
@@ -99,13 +97,13 @@ Let's look at the definition of a few object structures.
 (ruby.h)
 </pre>
 
-Before seeing every one of them in detail, let's begin with something more
+Before looking at every one of them in detail, let's begin with something more
 general.
 
 First, as @VALUE@ is defined as @unsigned long@, it must be casted before
 being used. That's why @Rxxxx()@ macros have been made for each object
 structure. For example, for @struct RString@ there is @RSTRING()@, for @struct
-RArray@ there is @RARRAY()@... These macros are used like this:
+RArray@ there is @RARRAY()@, etc... These macros are used like this:
 
 <pre>
 VALUE str = ....;
@@ -114,15 +112,16 @@ RSTRING(str)->len;   /* ((struct RString*)str)->len */
 RARRAY(arr)->len;    /* ((struct RArray*)arr)->len */
 </pre>
 
-An other important point is that all object structures start with a member
-@basic@ of type @struct RBasic@. As a result, whatever the type of structure
-pointed by @VALUE@, if you cast this @VALUE@ to @struct RBasic*@, you'll be
-able to access to the content of @basic@ (diagram 3).
+Another important point to mention is that all object structures start with a
+member @basic@ of type @struct RBasic@. As a result, whatever the type of
+structure pointed by @VALUE@, if you cast this @VALUE@ to @struct RBasic*@,
+you will be able to access the content of @basic@.
 
 !images/ch_object_rbasic_en.png(rbasic)!
 
-This design must mean that @struct RBasic@ contains important information. The
-definition of @struct RBasic@ is the following:
+You guessed that @struct RBasic@ has been designed to contain some important
+information shared by all object structures. The definition of @struct RBasic@
+is the following:
 
 <pre>
  290  struct RBasic {
@@ -133,33 +132,33 @@ definition of @struct RBasic@ is the following:
 (ruby.h)
 </pre>
 
-@flags@ are multipurpose flags, but its most important use is to store the
-type of structure (for instance @struct RObject@). The flags for the types are
-named @T_xxxx@, and can be obtained from a @VALUE@ using the macro @TYPE()@.
-For example with something like that:
+@flags@ are multipurpose flags, mostly used to register the structure type
+(for instance @struct RObject@). The type flags are named @T_xxxx@, and can be
+obtained from a @VALUE@ using the macro @TYPE()@. Here is an example:
 
 <pre>
 VALUE str;
 str = rb_str_new();    /* creates a Ruby string (its structure is RString) */
-TYPE(str)              /* the return value is T_STRING */
+TYPE(str);             /* the return value is T_STRING */
 </pre>
 
 The name of these @T_xxxx@ flags is directly linked to the type name, like
-@T_STRING@ for @struct RString@, @T_ARRAY@ for @struct RArray@.
+@T_STRING@ for @struct RString@ and @T_ARRAY@ for @struct RArray@.
 
 The other member of @struct RBasic@, @klass@, contains the class this object
 belongs to. As the @klass@ member is of type @VALUE@, what is stored is (a
-pointer to) a Ruby object. In short, it is a class object (diagram 4).
+pointer to) a Ruby object. In short, it is a class object.
 
 !images/ch_object_class_en.png(class)!
 
-The relation between object and class will be detailed in the "Methods"
+The relation between an object and its class will be detailed in the "Methods"
 section of this chapter.
 
-By the way, the name of this member is not @class@ so that when compiled with
-a C++ compiler it does not conflict with the reserved word @class@.
+By the way, the name of this member is not @class@ to make sure it does not
+raise any conflict when the file is processed by a C++ compiler, as it is a
+reserved word.
 
-h4. About types of structure
+h4. About structure types
 
 I said that the type of structure is stored in the @flags@ member of @struct
 Basic@. But why do we have to store the type of structure? It's to be able to
