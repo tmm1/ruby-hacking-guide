@@ -106,8 +106,8 @@ general.
 
 First, as `VALUE` is defined as `unsigned long`, it must be casted before
 being used. That's why `Rxxxx()` macros have been made for each object
-structure. For example, for `struct RString` there is `RSTRING()`, for @struct
-RArray@ there is `RARRAY()`, etc... These macros are used like this:
+structure. For example, for `struct RString` there is `RSTRING()`, for `struct
+RArray` there is `RARRAY()`, etc... These macros are used like this:
 
 <pre class="emlist">
 VALUE str = ....;
@@ -165,8 +165,8 @@ reserved word.
 
 h4. About structure types
 
-I said that the type of structure is stored in the `flags` member of @struct
-Basic@. But why do we have to store the type of structure? It's to be able to
+I said that the type of structure is stored in the `flags` member of `struct
+Basic`. But why do we have to store the type of structure? It's to be able to
 handle all different types of structure via `VALUE`. If you cast a pointer to
 a structure to `VALUE`, as the type information does not remain, the compiler
 won't be able to help. Therefore we have to manage the type ourselves. That's
@@ -240,7 +240,7 @@ to a `Fixnum`, and confirm that `Fixnum` are directly embedded in `VALUE`.
 
 ▼ `INT2FIX`
 <pre class="longlist">
- 123  #define INT2FIX(i) ((VALUE)(((long)(i))&lt;&lt;1 | FIXNUM_FLAG))
+ 123  #define INT2FIX(i) ((VALUE)(((long)(i))<<1 | FIXNUM_FLAG))
  122  #define FIXNUM_FLAG 0x01
 
 (ruby.h)
@@ -308,7 +308,7 @@ why `Symbol`, like `Fixnum`, was made stored in `VALUE`. Let's look at the
 ▼ `ID2SYM`
 <pre class="longlist">
  158  #define SYMBOL_FLAG 0x0e
- 160  #define ID2SYM(x) ((VALUE)(((long)(x))&lt;&lt;8|SYMBOL_FLAG))
+ 160  #define ID2SYM(x) ((VALUE)(((long)(x))<<8|SYMBOL_FLAG))
 
 (ruby.h)
 </pre>
@@ -380,8 +380,8 @@ However, in C, `nil` (`Qnil`) is true. That's why in C a Ruby-style macro,
 (ruby.h)
 </pre>
 
-As in `Qnil` only the second lower bit is 1, in `~Qnil` only the second bit is
-0. Then only `Qfalse` and `Qnil` become true with a bitwise and.
+As in `Qnil` only the third lower bit is 1, in `~Qnil` only the third lower
+bit is 0. Then only `Qfalse` and `Qnil` become 0 with a bitwise and.
 
 `!=0` has be added to be certain to only have 0 or 1, to satisfy the
 requirements of the glib library that only wants 0 or 1
@@ -450,8 +450,8 @@ in `ruby` some clever changes are made to make it look like single
 inheritance. The details of this process will be explained in the fourth
 chapter "Classes and modules".
 
-Because of this, `super` of the structure of `Object` points to @struct
-RClass@ of the `Kernel` object. Only the `super` of Kernel is NULL. So
+Because of this, `super` of the structure of `Object` points to `struct
+RClass` of the `Kernel` object. Only the `super` of Kernel is NULL. So
 contrary to what I said, if `super` is NULL, this `RClass` is the `Kernel`
 object (diagram 6).
 
@@ -726,8 +726,8 @@ of course a bit check is way faster than searching a `struct st_table`.
 h3. Gaps in structures
 
 Now you should understand how the instance variables are stored, but why are
-there structures without `iv_tbl`? Why is there no `iv_tbl` in @struct
-RString@ or `struct RArray`? Couldn't `iv_tbl` be part of `RBasic`?
+there structures without `iv_tbl`? Why is there no `iv_tbl` in `struct
+RString` or `struct RArray`? Couldn't `iv_tbl` be part of `RBasic`?
 
 Well, this could have been done, but there are good reasons why it was not. As
 a matter of fact, this problem is deeply linked to the way `ruby` manages
@@ -746,9 +746,9 @@ possible to regroup structures of similar size is desirable. The details about
 
 Generally the most used structure is `struct RString`. After that, in programs
 there are `struct RArray` (array), `RHash` (hash), `RObject` (user defined
-object), etc. However, this `struct RObject` only uses the space of @struct
-RBasic@ + 1 pointer. On the other hand, `struct RString`, `RArray` and `RHash`
-take the space of `struct Basic` + 3 pointers. In other words, when putting a
+object), etc. However, this `struct RObject` only uses the space of `struct
+RBasic` + 1 pointer. On the other hand, `struct RString`, `RArray` and `RHash`
+take the space of `struct RBasic` + 3 pointers. In other words, when putting a
 `struct RObject` in the shared entity, the space for 2 pointers is useless.
 And beyond that, if `RString` had 4 pointers, `RObject` would use less that
 half the size of the shared entity. As you would expect, it's wasteful.
@@ -963,8 +963,8 @@ h3. `struct RArray`
 (ruby.h)
 </pre>
 
-Except for the type of `ptr`, this structure is almost the same as @struct
-RString@. `ptr` points to the content of the array, and `len` is its length.
+Except for the type of `ptr`, this structure is almost the same as `struct
+RString`. `ptr` points to the content of the array, and `len` is its length.
 `aux` is exactly the same as in `struct RString`. `aux.capa` is the "real"
 length of the memory pointed by `ptr`, and if `ptr` is shared, `aux.shared`
 stores the shared original array object.
