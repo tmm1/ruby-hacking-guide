@@ -31,12 +31,13 @@ EOS
 
 class RedCloth
   # adds a caption below images
-  def inline_add_image_title(text)
+  # (and removes `code marks` for the title and alt attributes)
+  def refs_add_image_title(text)
     fig_counter = 0
     text.gsub!(IMAGE_RE) do |m|
       fig_counter += 1
       stln,algn,atts,url,title,href,href_a1,href_a2 = $~[1..8]
-      "#{m}<br>Diagram #{fig_counter}: #{title}"
+      "\n\np=. #{m.gsub(/`/, '')}<br>Diagram #{fig_counter}: #{title}\n\n"
     end
   end
   
@@ -70,12 +71,12 @@ class RedCloth
   # and can be followed just after by any character
   # (no need for a space or punctuation)
   NEW_CODE_RE = /`(.*?)`/m
-  def inline_textile_new_code(text) 
+  def inline_textile_new_code(text)
     text.gsub!(NEW_CODE_RE) { |m| rip_offtags("<code>#{$~[1]}</code>") }
   end  
 end
 
-RedClothRules = [ :refs_include, :inline_add_image_title, :inline_autolink, :inline_textile_new_code, :textile ]
+RedClothRules = [ :refs_include, :refs_add_image_title, :inline_autolink, :inline_textile_new_code, :textile ]
 
 script_mod_time = File.mtime($0)
 

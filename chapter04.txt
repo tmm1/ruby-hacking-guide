@@ -351,13 +351,13 @@ two points to look out for are the following ones:
 h3. Normal classes and singleton classes
 
 Singleton classes are special classes: they're basically the same as
-normal class, but there are a few differences. We can say that finding
-these differences is explaining concretely singleton classes.
+normal classes, but there are a few differences. We can say that
+finding these differences is explaining concretely singleton classes.
 
-What can we do to find those differences? We should find the
-differences between the function creating normal class and the one
-creating singleton classes. For this, we have to find the function for
-creating normal classes. That is if normal classes can be defined by
+What should we do to find them? We should find the differences between
+the function creating normal classes and the one creating singleton
+classes. For this, we have to find the function for creating normal
+classes. That is as normal classes can be defined by
 `rb_define_class()`, for sure ahead we can expect there is a function
 defining normal classes. For the moment, it's not about the content of
 `rb_define_class()`. I have some reason to be interested in something
@@ -378,7 +378,7 @@ rb_define_class
 I'm interested by `rb_class_new()`. Doesn't this name means it creates
 a new class? Let's confirm that.
 
-▼@rb_class_new()@
+▼ `rb_class_new()`
 <pre class="longlist">
   37  VALUE
   38  rb_class_new(super)
@@ -423,10 +423,10 @@ too.
 (class.c)
 </pre>
 
-`NEWOBJ()` and `OBJSETUP()` are a fixed expression used when creating
-Ruby objects that possess one of the internal structure types
-(`struct Rxxxx`). They are both macros. In `NEWOBJ()`, `struct RClass`
-is created, and puts the pointer in its first parameter `klass`. In
+`NEWOBJ()` and `OBJSETUP()` are fixed expressions used when creating
+Ruby objects that possess one of the internal structure types (`struct
+Rxxxx`). They are both macros. In `NEWOBJ()`, `struct RClass` is
+created, and the pointer is put in its first parameter `klass`. In
 `OBJSETUP()`, inside this `RClass`, the `RBasic` part, that means
 `basic.klass` and `basic.flags`, are initialized.
 
@@ -812,11 +812,9 @@ necessary. Diagram 3 shows these dependency relationships.
 
 h4. Class methods inheritance
 
-
 In Ruby singleton methods defined in class are called class methods,
 but their specification is a little strange. Why are class methods
 inherited?
-
 
 <pre class="emlist">
 class A
@@ -831,23 +829,16 @@ end
 B.test()  # calls it
 </pre>
 
-
 This can't occur with singleton methods from objects that are not
 classes. In other words, classes are the only ones handled
 particularly. In this section we'll search how are inherited class
 methods.
 
-
-
-
 h3. Singleton class of a class
-
 
 Assuming that class methods are inherited, where is this operation
 done? At class definition (creation)? At singleton method definition?
 Then let's look at the code defining classes.
-
-
 
 Class definition means of course `rb_define_class()`. Now
 let's take the call graph of this function.
@@ -877,7 +868,7 @@ h4. `rb_define_class_id()`
 
 Let's first start reading from its caller, `rb_define_class_id()`.
 
-▼@rb_define_class_id()@
+▼ `rb_define_class_id()`
 <pre class="longlist">
  160  VALUE
  161  rb_define_class_id(id, super)
@@ -920,7 +911,7 @@ simplified `rb_make_metaclass()`.
 
 h4. `rb_make_metaclass` (once more)
 
-▼@rb_make_metaclass@ (after first compression)
+▼ `rb_make_metaclass` (after first compression)
 <pre class="longlist">
 rb_make_metaclass(obj, super)
 {
@@ -1009,7 +1000,8 @@ investigation.
 
 !images/ch_class_mmm.jpg(Class of a class's singleton class)!
 
-A class's singleton class puts itself as its own class. Quite complicated.
+A class's singleton class puts itself as its own class. Quite
+complicated.
 
 The second question: the class of `Object` must be `Class`. Didn't I
 properly confirm this in chapter 1: Ruby language minimum?
@@ -1134,7 +1126,7 @@ h3. Name → class
 First we'll read `rb_defined_class()`. After the end of this function,
 the class can be found from the constant.
 
-▼@rb_define_class()@
+▼ `rb_define_class()`
 <pre class="longlist">
  183  VALUE
  184  rb_define_class(name, super)
@@ -1159,7 +1151,7 @@ the class can be found from the constant.
  203          return klass;
  204      }
  205      if (!super) {
- 206          rb_warn("no super class for `%s', Object assumed", name);
+ 206          rb_warn("no super class for '%s', Object assumed", name);
  207      }
  208      klass = rb_define_class_id(id, super);
  209      rb_class_inherited(super, klass);
@@ -1204,8 +1196,8 @@ st_add_direct(rb_class_tbl, id, klass);
 </pre>
 
 This part assigns the class to the constant. However, whatever the way
-you look at it you do not see that. In fact, only top-level classes are
-separated from the other constants and regrouped in
+you look at it you do not see that. In fact, only top-level classes
+are separated from the other constants and regrouped in
 `rb_class_tbl()`. The split is slightly related to the GC. It's not
 essential.
 
@@ -1227,7 +1219,7 @@ rb_define_class
 
 Let's look at its content:
 
-▼@rb_name_class()@
+▼ `rb_name_class()`
 <pre class="longlist">
  269  void
  270  rb_name_class(klass, id)
@@ -1253,7 +1245,7 @@ between name and class. What's left if the case of nesting level 2 and
 more, and for that it's a little more complicated. The function to
 define classes at level 2 or more is `rb_define_class_under()`.
 
-▼@rb_define_class_under()@
+▼ `rb_define_class_under()`
 <pre class="longlist">
  215  VALUE
  216  rb_define_class_under(outer, name, super)
@@ -1276,7 +1268,7 @@ define classes at level 2 or more is `rb_define_class_under()`.
  233          return klass;
  234      }
  235      if (!super) {
- 236          rb_warn("no super class for `%s::%s', Object assumed",
+ 236          rb_warn("no super class for '%s::%s', Object assumed",
  237                  rb_class2name(outer), name);
  238      }
  239      klass = rb_define_class_id(id, super);
@@ -1391,7 +1383,7 @@ h2. Include
 We only talked about classes so let's finish by doing something else
 and talk about module inclusion.
 
-h3. @rb_include_module@（1）
+h3. `rb_include_module` (1)
 
 Includes are done by the ordinary method `Module#include`. Its entity
 in C is `rb_include_module()`. In fact, to be exact, its body is
@@ -1511,7 +1503,7 @@ But to be sure of this we have to look at `include_class_new()`.
 
 h3. `include_class_new()`
 
-▼@include_class_new()@
+▼ `include_class_new()`
 <pre class="longlist">
  319  static VALUE
  320  include_class_new(module, super)
@@ -1590,7 +1582,7 @@ practice all methods skip include classes, no exception.
 
 h3. Simulation
 
-It was complicated so let's look at a concrete example. I4d like you
+It was complicated so let's look at a concrete example. I'd like you
 to watch diagram 13 (1). There are `m1` that included `m2` and the
 `c1` class. From there, the changes made to include `m1` in `c1` are
 (2) and (3). `im` are of course include classes.
@@ -1626,10 +1618,12 @@ Well now we can explain the part of `rb_include_module()` we skipped.
 In the `T_ICLASS` in `klass`'s superclass (`p`), if there is something
 with the same table as the one of the module we want to include
 (`module`), include (`module`), it's `module`'s include class. That's
-why we skip to not include it twice.  However, `p` is a module that
-has been included once, so its included modules must already be
-included... that's what I thought for a moment, but we can have the
-following context:
+why we skip to not include it twice. But if there is a module included
+by this module (`module->super`), this would be checking twice.
+
+However, `p` is a module that has been included once, so its included
+modules must already be included... that's what I thought for a
+moment, but we can have the following context:
 
 <pre class="emlist">
 module M
@@ -1657,4 +1651,3 @@ singleton methods of the module are not inherited by the including
 class (or module). When you want to also inherit singleton methods,
 the usual way is to override `Module#append_features`.
 
-Copyright (c) 2002-2004 Minero Aoki, All rights reserved.

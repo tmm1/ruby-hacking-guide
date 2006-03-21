@@ -42,7 +42,7 @@ Here is the definition of `VALUE`:
 In practice, a `VALUE` must be casted to different types of structure pointer.
 Therefore if an `unsigned long` and a pointer have a different size, `ruby`
 will not work well. Strictly speaking, it will not work for pointer types
-bigger that `sizeof(unsigned long)`. Fortunately, no recent machine feature
+bigger than `sizeof(unsigned long)`. Fortunately, no recent machine feature
 this capability, even if some time ago there were quite a few of them.
 
 Several structures are available according to object classes:
