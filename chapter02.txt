@@ -11,7 +11,7 @@ studying the declaration of objects structures.
 
 What are the required conditions to make sure objects can exist? Many
 explanations can be given but in reality there are three conditions that must
-be respected:
+be obeyed:
 
 # Being able to differentiate itself from the rest (having an identity)
 # Being able to reply to requests (methods)
@@ -147,8 +147,8 @@ str = rb_str_new();    /* creates a Ruby string (its structure is RString) */
 TYPE(str);             /* the return value is T_STRING */
 </pre>
 
-The name of these `T_xxxx` flags is directly linked to the type name, like
-`T_STRING` for `struct RString` and `T_ARRAY` for `struct RArray`.
+The names of these `T_xxxx` flags are directly linked to the corresponding type
+name, like `T_STRING` for `struct RString` and `T_ARRAY` for `struct RArray`.
 
 The other member of `struct RBasic`, `klass`, contains the class this object
 belongs to. As the `klass` member is of type `VALUE`, what is stored is (a
@@ -170,14 +170,14 @@ Basic`. But why do we have to store the type of structure? It's to be able to
 handle all different types of structure via `VALUE`. If you cast a pointer to
 a structure to `VALUE`, as the type information does not remain, the compiler
 won't be able to help. Therefore we have to manage the type ourselves. That's
-the consequences for being able to handle all the structure types in a unified
+the consequence of being able to handle all the structure types in a unified
 way.
 
-OK, but the used structure is defined by the class so why is the structure
+OK, but the used structure is defined by the class so why are the structure
 type and class are stored separately? Being able to find the structure type
 from the class should be enough. There are two reasons for not doing this.
 
-The first one is, I'm sorry for contradicting what I said before, but in fact
+The first one is (I'm sorry for contradicting what I said before), in fact
 there are structures that do not have a `struct RBasic` (i.e. they have no
 `klass` member). For example `struct RNode` that will appear in the second
 part of the book. However, `flags` is guaranteed to be in the beginning
@@ -193,7 +193,7 @@ easier and faster to put the information about the type in the structure.
 
 h4. The use of `basic.flags`
 
-As limiting myself to say that `basic.flags` is used for different things
+As limiting myself to saying that `basic.flags` is used for different things
 including the type of structure makes me feel bad, here's a general
 illustration for it (diagram 5). There is no need to understand everything
 right away, I just wanted to show its uses while it was bothering me.
@@ -210,7 +210,7 @@ h3. Objects embedded in `VALUE`
 As I said, `VALUE` is an `unsigned long`. As `VALUE` is a pointer, it may look
 like `void*` would also be all right, but there is a reason for not doing
 this. In fact, `VALUE` can also not be a pointer. The 6 cases for which
-`VALUE` is not a pointer are the followings:
+`VALUE` is not a pointer are the following:
 
 # small integers
 # symbols
@@ -225,12 +225,12 @@ h4. Small integers
 
 As in Ruby all data are objects, integers are also objects. However, as there
 are lots of different instances of integers, expressing them as structures
-would risk to slow down the execution. For example, when incrementing from 0
+would risk slowing down execution. For example, when incrementing from 0
 to 50000, just for this creating 50000 objects would make us hesitate.
 
 That's why in `ruby`, to some extent, small integers are treated specially and
 embedded directly into `VALUE`. "small" means signed integers that can be held
-in `sizeof(VALUE)*8-1` bit. In other words, on 32 bits machines, the integers
+in `sizeof(VALUE)*8-1` bits. In other words, on 32 bits machines, the integers
 have 1 bit for the sign, and 30 bits for the integer part. Integers in this
 range will belong to the `Fixnum` class and the other integers will belong to
 the `Bignum` class.
@@ -268,7 +268,7 @@ h4. Symbols
 
 What are symbols?
 
-As this question if quite troublesome to answer, let's start with the reasons
+As this question is quite troublesome to answer, let's start with the reasons
 why symbols were necessary. First, let's start with the `ID` type used inside
 `ruby`. It's like this:
 
@@ -287,7 +287,7 @@ next chapter "Names and name tables".
 
 In language implementations, there are a lot of names to handle. Method names
 or variable names, constant names, file names in class names... It's
-troublesome to handle all of them as strings (`char*`), because of of memory
+troublesome to handle all of them as strings (`char*`), because of memory
 management and memory management and memory management... Also, lots of
 comparisons would certainly be necessary, but comparing strings character by
 character will slow down the execution. That's why strings are not handled
@@ -406,14 +406,14 @@ be found at all at the Ruby level.
 h2. Methods
 
 I already brought up the three important points of a Ruby object, that is
-having an identity, being able to call a method, keeping data for each
+having an identity, being able to call a method, and keeping data for each
 instance. In this section, I'll explain in a simple way the structure linking
 objects and methods.
 
 h3. `struct RClass`
 
-In Ruby, class exist as objects during the execution. Of course. So there must
-be a structure for class objects. That structure is `struct RClass`. Its
+In Ruby, classes exist as objects during the execution. Of course. So there
+must be a structure for class objects. That structure is `struct RClass`. Its
 structure type flag is `T_CLASS`.
 
 As class and modules are very similar, there is no need to differentiate their
@@ -434,12 +434,12 @@ differentiated by the `T_MODULE` structure flag.
 
 First, let's focus on the `m_tbl` (Method TaBLe) member. `struct st_table` is
 an hashtable used everywhere in `ruby`. Its details will be explained in the
-next chapter "Names and name tables", but anyway they are objects that keep
-one to one relations correspondence. In the case of `m_tbl`, it keeps the
+next chapter "Names and name tables", but basically, it is a table mapping
+names to objects. In the case of `m_tbl`, it keeps the
 correspondence between the name (`ID`) of the methods possessed by this class
 and the methods entity itself.
 
-The fourth member `super` keeps, like its name says, the superclass. As it's a
+The fourth member `super` keeps, like its name suggests, the superclass. As it's a
 `VALUE`, it's (a pointer to) the class object of the superclass. In Ruby there
 is only one class that has no superclass (the root class): `Object`.
 
@@ -459,7 +459,7 @@ object (diagram 6).
 
 h3. Methods search
 
-Classes being structured like this, you can easily imagine the method call
+With classes structured like this, you can easily imagine the method call
 process. The `m_tbl` of the object's class is searched, and if the method was
 not found, the `m_tbl` of `super` is searched, and so on. If there is no more
 `super`, that is to say the method was not found even in `Object`, then it
@@ -550,7 +550,7 @@ all right but how is it in practice? Let's look at the function
 </pre>
 
 `rb_raise()` and `rb_error_frozen()` are both error checks. Error checks are
-necessary, but it's not the main part of the treatment, so you have to ignore
+necessary, but it's not the main part of the treatment, so you should ignore
 them at first read.
 
 After removing error treatment, only the `switch` remains, but this
@@ -570,8 +570,8 @@ the type flag is an integer constant, we can branch depending on it with a
 special treatment is done to properly return `T_FIXNUM` and `T_SYMBOL`, so
 there's no need to worry.
 
-Well, let's go back to `rb_ivar_set()`. It seems only the treatment of
-`T_OBJECT`, `T_CLASS` and `T_MODULE` is different. These 3 have been chosen on
+Well, let's go back to `rb_ivar_set()`. It seems only the treatments of
+`T_OBJECT`, `T_CLASS` and `T_MODULE` are different. These 3 have been chosen on
 the basis that their second member is `iv_tbl`. Let's confirm it in practice.
 
 ▼ Structures whose second member is `iv_tbl`
@@ -606,14 +606,14 @@ st_insert(ROBJECT(obj)->iv_tbl, id, val);
 break;
 </pre>
 
-`ROBJECT()` is a macro that casts a `VALUE` into a `struct RObject*`. It's
-possible that `obj` points to a struct RClass, but as we only access the
-second member no problem will occur.
+`ROBJECT()` is a macro that casts a `VALUE` into a `struct
+RObject*`. It's possible that `obj` points to a struct RClass, but as
+we're only going to access the second member no problem will occur.
 
 `st_init_numtable()` is a function creating a new `st_table`. `st_insert()` is
 a function doing associations in a `st_table`.
 
-In conclusion, this code does the following: if `iv_tbl` does not exists, it
+In conclusion, this code does the following: if `iv_tbl` does not exist, it
 creates it, then stores the [variable name → object] association.
 
 Warning: as `struct RClass` is a class object, this instance variable table is
@@ -707,10 +707,10 @@ table.
 
 `st_add_direct()` is similar to `st_insert()`, but the part before adding the
 association that checks if the key was already stored or not is different. In
-other words, in the case of `st_add_direct()`, is a key already registered is
+other words, in the case of `st_add_direct()`, if a key already registered is
 being used, two associations linked to this same key will be stored.
 `st_add_direct()` can be used when the check for existence has already been
-done, like it is the case here, or when a new table has just been created.
+done, as is the case here, or when a new table has just been created.
 
 `FL_SET(obj, FL_EXIVAR)` is the macro that sets the `FL_EXIVAR` flag in the
 `basic.flags` of `obj`. The `basic.flags` flags are all named `FL_xxxx` and
@@ -761,7 +761,7 @@ was not so much of a problem. Making large amounts of memory useless just for
 such a functionality looks stupid.
 
 If you take all this into consideration, you can conclude that increasing the
-size of object structures does not bring any good.
+size of object structures does not do any good.
 
 h3. `rb_ivar_get()`
 
