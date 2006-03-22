@@ -856,8 +856,8 @@ straightforward.
 
 Rather than a string, Ruby's string is more a byte array, and can contain any
 byte including `NUL`. So when thinking at the Ruby level, ending the string
-with `NUL` does not mean anything. But as C functions require `NUL`, for
-convenience the ending `NUL` is there. However, it is not included in `len`.
+with `NUL` does not mean anything. As C functions require `NUL`, for
+convenience the ending `NUL` is there, however, it is not included in `len`.
 
 When dealing with a string coming from the interpreter or an extension
 library, you can write `RSTRING(str)->ptr` or `RSTRING(str)->len`, and access
@@ -870,10 +870,10 @@ use it later
 
 Why is that? First, there is an important software engineering principle:
 Don't arbitrarily tamper with someone's data. Interface functions are there
-for a reason. However, there are concretely reasons in `ruby`'s construction
+for a reason. However, there are concrete reasons in `ruby`'s design
 why you should not do such things as consulting or storing a pointer, and
 that's related to the fourth member `aux`. However, to explain properly how to
-use `aux`, we have to explain first a little more of Ruby's strings
+use `aux`, we have to explain first a little more of Ruby's strings'
 characteristics.
 
 Ruby's strings can be modified (are mutable). By mutable I mean after the
@@ -886,10 +886,10 @@ p(s)             # show the string
 </pre>
 
 the content of the object pointed by `s` will become "`string`". It's
-different from Java or Python string objects. Java's `StringBuffer`'s closer.
+different from Java or Python string objects. Java's `StringBuffer` is closer.
 
 And what's the relation? First, mutable means the length (`len`) of the string
-can change. We have to increase or reduce the allocated memory size each time
+can change. We have to increase or decrease the allocated memory size each time
 the length changes. We can of course use `realloc()` for that, but generally
 `malloc()` and `realloc()` are heavy operations. Having to `realloc()` each
 time the string changes is a huge burden.
@@ -900,7 +900,7 @@ remaining memory, it's taken care of without calling `realloc()`, so it's
 faster. The structure member `aux.capa` contains the length including this
 additional memory.
 
-Well what is this other `aux.shared`? It's to speed up the creation of literal
+So what is this other `aux.shared`? It's to speed up the creation of literal
 strings. Have a look at the following Ruby program.
 
 <pre class="emlist">
@@ -912,14 +912,14 @@ end
 </pre>
 
 Whatever the number of times you repeat the loop, the fourth line's `p` has to
-show `"string"`. That's why the code `"str"` should create each time a string
+show `"string"`. That's why the code `"str"` should create, each time, a string
 object holding a different `char[]`. However, if no change occurs for a lot of
-strings, useless copies of `char[]` can be done many times. It would be better
+strings, useless copies of `char[]` can be created many times. It would be better
 to share one common `char[]`.
 
 The trick that allows this to happen is `aux.shared`. String objects created
 with a literal use one shared `char[]`. When a change occurs, the string is
-copied in dedicated memory and the change is done on this new copy. This
+copied in unshared memory, and the change is done on this new copy. This
 technique is called "copy-on-write". When using a shared `char[]`, the flag
 `ELTS_SHARED` is set in the object structure's `basic.flags`, and `aux.shared`
 contains the original object. `ELTS` seems to be the abbreviation of
@@ -927,10 +927,10 @@ contains the original object. `ELTS` seems to be the abbreviation of
 
 But, well, let's return to our talk about `RSTRING(str)->ptr`. Even if
 consulting the pointer is OK, you must not modify it, first because the value
-of `len` or `capa` will no more agree with the content, and also because when
+of `len` or `capa` will no longer agree with the content, and also because when
 modifying strings created as litterals, `aux.shared` has to be separated.
 
-To finish this section about `RStrict`, let's write some examples how to use
+To finish this section about `RString`, let's write some examples how to use
 it. `str` is a `VALUE` that points to `RString`.
 
 <pre class="emlist">
@@ -972,7 +972,7 @@ stores the shared original array object.
 From this structure, it's clear that Ruby's `Array` is an array and not a
 list. So when the number of elements changes in a big way, a `realloc()` must
 be done, and if an element must be inserted at an other place than the end, a
-`memmove()` will occur. But even if we do it, it's moving so fact it's really
+`memmove()` will occur. But even if we do it, it's moving so fast it's really
 impressive on current machines.
 
 That's why the way to access it is similar to `RString`. You can consult
@@ -1042,7 +1042,7 @@ is `nil`. `iter_lev` is to make the hashtable reentrant (multithread safe).
 
 h3. `struct RFile`
 
-`struct RFile` is a structure for the instances of the built-in IO class and
+`struct RFile` is a structure for instances of the built-in IO class and
 its subclasses.
 
 ▼ `struct RFile`
@@ -1070,8 +1070,8 @@ its subclasses.
 (rubyio.h)
 </pre>
 
-All members have been transfered in `struct OpenFile`. As there aren't many
-instances of `IO` objects, it's OK to do it like this. The use of each member
+All members have been transferred in `struct OpenFile`. As there aren't many
+instances of `IO` objects, it's OK to do it like this. The purpose of each member
 is written in the comments. Basically, it's a wrapper around C's `stdio`.
 
 h3. `struct RData`
@@ -1101,7 +1101,7 @@ for managing a pointer to a user defined structure" has been created on
 `dfree` is the function used to free this structure, and
 `dmark` is the function for when the "mark" of the mark and sweep occurs.
 
-As whatever we do, explaining `struct RData` is still too complicated, so for
+Because explaining `struct RData` is still too complicated, for
 the time being let's just look at its representation (diagram 8). You'll read
 a detailed explanation of its members in chapter 5 "Garbage collection" where
 there'll be presented once again.
