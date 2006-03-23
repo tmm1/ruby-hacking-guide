@@ -645,7 +645,7 @@ simpler, I've reorganized what is done in a diagram (diagram 1). In the
 horizontal direction is the "instance - class" relation, and in the
 vertical direction is inheritance (the superclasses are above).
 
-!images/ch_class_addsclass.jpg(`rb_singleton_class`)!
+!images/ch_class_addsclass.png(`rb_singleton_class`)!
 
 When comparing on this diagram the first and last part, you can
 understand that `sclass` is inserted without changing the
@@ -745,7 +745,7 @@ h4. Infinite chain of classes
 Even a class has a class, and it's `Class`. And the class of `Class`
 is again `Class`. We find ourselves in an infinite loop (diagram 2).
 
-!images/ch_class_infloop.jpg(Infinite loop of classes)!
+!images/ch_class_infloop.png(Infinite loop of classes)!
 
 Up to here it's something we've already gone through. What's going
 after that is the theme of this chapter. Why does class have to make a
@@ -809,7 +809,7 @@ And to implement static methods, one other thing was necessary:
 singleton methods. And by chain reaction, singleton classes are also
 necessary. Diagram 3 shows these dependency relationships.
 
-!images/ch_class_reqlink.jpg(Requirements dependencies)!
+!images/ch_class_reqlink.png(Requirements dependencies)!
 
 h4. Class methods inheritance
 
@@ -963,13 +963,13 @@ that `obj`'s singleton class is written as `(obj)`. And the `(klass)`
 is the singleton class for `klass`. It looks like the singleton class
 is caught between a class and this class's superclass's class.
 
-!images/ch_class_metaclass.jpg(Introduction of a class's singleton class)!
+!images/ch_class_metaclass.png(Introduction of a class's singleton class)!
 
 From this result, and moreover when thinking more deeply, we can think
 that the superclass's class must again be the superclass's singleton
 class. You'll understand with one more inheritance level (diagram 5).
 
-!images/ch_class_multi.jpg(Hierarchy of multi-level inheritance)!
+!images/ch_class_multi.png(Hierarchy of multi-level inheritance)!
 
 As the relationship between `super` and `klass` is the same as the one
 between `klass` and `klass2`, `c` must be the singleton class
@@ -987,7 +987,7 @@ end
 
 internally, a structure like diagram 6 is created.
 
-!images/ch_class_metatree.jpg(Class hierarchy and metaclasses)!
+!images/ch_class_metatree.png(Class hierarchy and metaclasses)!
 
 As classes and their metaclasses are linked and inherit like this,
 class methods are inherited.
@@ -1000,7 +1000,7 @@ class of a class's singleton class? To do this we can try
 debugging. I've made the diagram 7 from the results of this
 investigation.
 
-!images/ch_class_mmm.jpg(Class of a class's singleton class)!
+!images/ch_class_mmm.png(Class of a class's singleton class)!
 
 A class's singleton class puts itself as its own class. Quite
 complicated.
@@ -1049,7 +1049,7 @@ superclass (diagram 8).
 
 `I_CLASS` will appear later when we will talk about include.
 
-!images/ch_class_real.jpg(Singleton class and real class)!
+!images/ch_class_real.png(Singleton class and real class)!
 
 h3. Singleton class and metaclass
 
@@ -1109,12 +1109,12 @@ And in the three lines of the second half, `(Object)`, `(Module)` and
 `rb_make_metaclass()` so there is no problem. With this, the
 metaobjects' bootstrap is finished.
 
-!images/ch_class_boot1.jpg(Metaobjects creation)!
+!images/ch_class_boot1.png(Metaobjects creation)!
 
 After taking everything into account, it gives us a the final shape
 like diagram 10.
 
-!images/ch_class_metaobj.jpg(Ruby metaobjects)!
+!images/ch_class_metaobj.png(Ruby metaobjects)!
 
 h2. Class names
 
@@ -1554,7 +1554,7 @@ on, without duplicating the table. Later, if a method is added, the
 module's body and the include class will still have exactly the
 same methods (diagram 11).
 
-!images/ch_class_symbolic.jpg(Include class)!
+!images/ch_class_symbolic.png(Include class)!
 
 If you look closely at (A), the structure type flag is set to
 T_ICLASS. This seems to be the mark of an include class. This
@@ -1566,7 +1566,7 @@ And if you think about joining what this function and
 wrong. In brief, including is inserting the include class of a
 module between a class and its superclass (diagram 12).
 
-!images/ch_class_include.jpg(Include)!
+!images/ch_class_include.png(Include)!
 
 Then, at (D-2) the module's stored in the include class's
 `klass`. At (D-1), the module's entity's taken out... at least that's
@@ -1589,7 +1589,7 @@ to look at diagram 13 (1). There are `m1` that included `m2` and the
 `c1` class. From there, the changes made to include `m1` in `c1` are
 (2) and (3). `im` are of course include classes.
 
-!images/ch_class_simulate.jpg(Include)!
+!images/ch_class_simulate.png(Include)!
 
 h3. `rb_include_module` (2)
 

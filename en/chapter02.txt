@@ -28,7 +28,7 @@ In `ruby`, the contents of an object is expressed by a `C` structure, always
 handled via a pointer. A different kind of structure is used for each class,
 but the pointer type will always be `VALUE` (diagram 1).
 
-!images/ch_object_value_en.png(`VALUE` and structure)!
+!images/ch_object_value.png(`VALUE` and structure)!
 
 Here is the definition of `VALUE`:
 
@@ -64,7 +64,7 @@ Several structures are available according to object classes:
 For example, for an string object, `struct RString` is used, so we will have
 something like the following.
 
-!images/ch_object_string_en.png(String object)!
+!images/ch_object_string.png(String object)!
 
 Let's look at the definition of a few object structures.
 
@@ -121,7 +121,7 @@ member `basic` of type `struct RBasic`. As a result, whatever the type of
 structure pointed by `VALUE`, if you cast this `VALUE` to `struct RBasic*`,
 you will be able to access the content of `basic`.
 
-!images/ch_object_rbasic_en.png(`struct RBasic`)!
+!images/ch_object_rbasic.png(`struct RBasic`)!
 
 You guessed that `struct RBasic` has been designed to contain some important
 information shared by all object structures. The definition of `struct RBasic`
@@ -154,7 +154,7 @@ The other member of `struct RBasic`, `klass`, contains the class this object
 belongs to. As the `klass` member is of type `VALUE`, what is stored is (a
 pointer to) a Ruby object. In short, it is a class object.
 
-!images/ch_object_class_en.png(object and class)!
+!images/ch_object_class.png(object and class)!
 
 The relation between an object and its class will be detailed in the "Methods"
 section of this chapter.
@@ -198,7 +198,7 @@ including the type of structure makes me feel bad, here's a general
 illustration for it (diagram 5). There is no need to understand everything
 right away, I just wanted to show its uses while it was bothering me.
 
-!images/ch_object_flags_en.png(Use of `flags`)!
+!images/ch_object_flags.png(Use of `flags`)!
 
 When looking at the diagram, it looks like that 21 bits are not used on 32 bit
 machines. On these additional bits, the flags `FL_USER0` to `FL_USER8` are
@@ -455,7 +455,7 @@ RClass` of the `Kernel` object. Only the `super` of Kernel is NULL. So
 contrary to what I said, if `super` is NULL, this `RClass` is the `Kernel`
 object (diagram 6).
 
-!images/ch_object_classtree_en.png(Class tree at the C level)!
+!images/ch_object_classtree.png(Class tree at the C level)!
 
 h3. Methods search
 
@@ -649,7 +649,7 @@ However, a method linking an instance to a `struct st_table` would allow
 instances to have instance variables. In `ruby`, this was solved by using a
 global `st_table`, `generic_iv_table` (diagram 7) for these associations.
 
-!images/ch_object_givtable_en.png(`generic_iv_table`)!
+!images/ch_object_givtable.png(`generic_iv_table`)!
 
 Let's see this in practice.
 
@@ -1106,4 +1106,4 @@ the time being let's just look at its representation (diagram 8). You'll read
 a detailed explanation of its members in chapter 5 "Garbage collection" where
 there'll be presented once again.
 
-!images/ch_object_rdata_en.png(Representation of `struct RData`)!
+!images/ch_object_rdata.png(Representation of `struct RData`)!
