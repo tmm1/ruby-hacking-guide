@@ -645,13 +645,3 @@ h3. `VALUE`と`ID`の変換
 `char*`をコピーして使う(また引数を変更したりはしない)。このように
 方針が一貫しているからこそ関数の連鎖だけで書けるのである。
 
-<hr>
-
-御意見・御感想・誤殖の指摘などは
-"青木峰郎 &lt;aamine@loveruby.net&gt;":mailto:aamine@loveruby.net
-までお願いします。
-
-"『Rubyソースコード完全解説』
-はインプレスダイレクトで御予約・御購入いただけます (書籍紹介ページへ飛びます)。":http://direct.ips.co.jp/directsys/go_x_TempChoice.cfm?sh_id=EE0040&amp;spm_id=1&amp;GM_ID=1721
-
-Copyright (c) 2002-2004 Minero Aoki, All rights reserved.
