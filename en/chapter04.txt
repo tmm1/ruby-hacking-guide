@@ -166,10 +166,11 @@ end
 
 h3. Singleton methods definition
 
-Methods only defined on a specific instance of an object, singleton
-methods, can also be defined. As I used `File.unlink` as an example in
-chapter 1 "Ruby language minimum", I first wanted to show it here, but
-for a particular reason we'll look at `File.link` instead.
+We can define methods that are specific to an instance of an
+object. They are called singleton methods. As I used `File.unlink` as
+an example in chapter 1 "Ruby language minimum", I first wanted to
+show it here, but for a particular reason we'll look at `File.link`
+instead.
 
 ▼ Definition of `File.link`
 <pre class="longlist">
