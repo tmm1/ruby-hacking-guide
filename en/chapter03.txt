@@ -261,8 +261,9 @@ this `type_numhash`.
 
 h3. `st_lookup()`
 
-では今度はこの構造を使う関数を見ていこう。最初は検索用の関数から見てい
-くのがいい。ハッシュテーブルを検索する関数`st_lookup()`を以下に示す。
+Now then, let us look at the function that uses this data structure. At first,
+it is good to look at the function that does the search. Shown below is the
+function that searches the hash table, `st_lookup()`.
 
 ▼ `st_lookup()`
 <pre class="longlist">
@@ -290,8 +291,8 @@ h3. `st_lookup()`
 (st.c)
 </pre>
 
-重要なところはほとんど`do_hash()`と`FIND_ENTRY()`で行われているようだ。
-順番に見る。
+The important parts are pretty much in `do_hash()` and `FIND_ENTRY()`. Let us
+look at them in order.
 
 ▼ `do_hash()`
 <pre class="longlist">
@@ -300,17 +301,18 @@ h3. `st_lookup()`
 (st.c)
 </pre>
 
-念のため書くと、マクロ本体のややこしい部分は
+Just in case, let us write down the macro body that is difficult to understand:
 
 <pre class="emlist">
 (table)->type->hash
 </pre>
 
-という関数ポインタから、`key`を引数にして関数を起動する記法である。
-`*`は`table`にはかからない。つまり型ごとに用意されたハッシュ関数
-`type->hash`でもって`key`に対するハッシュ値を求めるのがこのマクロだ。
+is a function pointer where the `key` is passed as a parameter. This is the
+syntax for calling the function. `*` is not applied to `table`. In other words,
+this macro is a hash value generator for a `key`, using the prepared hash
+function `type->hash` for each data type.
 
-続いて`FIND_ENTRY()`を見る。
+Continuing, let us examine `FIND_ENTRY()`.
 
 ▼ `FIND_ENTRY()`
 <pre class="longlist">
@@ -335,35 +337,38 @@ h3. `st_lookup()`
 (st.c)
 </pre>
 
-`COLLISION`はデバッグ用のマクロなので無視していい(すべきだ)。
+`COLLISION` is a macro for debug so we will (should) ignore it.
 
-`FIND_ENTRY()`の引数は前から
+The parameters of `FIND_ENTRY()`, starting from the left are:
 
 # `st_table`
-# 使うべきテンポラリ変数
-# ハッシュ値
-# 検索キー
+# the found entry will be substituted into this parameter
+# hash value
+# temporary variable
 
-である。また二番目の引数には見付かった`st_table_entry*`が保存される。
+And, the second parameter will store the found `st_table_entry*`.
 
-それと一番外側には複数の式からなるマクロを安全にくくるための`do`〜
-`while(0)`が使ってある。これは`ruby`の、と言うよりC言語のプリプロセッ
-サのイディオムだ。`if(1)`だと`else`が付いてしまう恐れがある。
-`while(1)`だと最後に`break`が必要になる。
+At the outermost side, a `do` .. `while(0)` is used to safely wrap up a
+multiple expression macro. This is `ruby`'s, rather, C language's preprocessor
+idiom. In the case of `if(1)`, there may be a danger of adding an `else` part.
+In the case of `while(1)`, it becomes necessary to add a `break` at the very
+end.
 
-`while(0)`のあとにセミコロンを置かないのもポイントだ。なぜなら、
+Also, there is no semicolon added after the `while(0)`.
 
 <pre class="emlist">
 FIND_ENTRY();
 </pre>
 
-と普通に書いたときに文末のセミコロンが無駄にならないからである。
+This is so that the semicolon that is normally written at the end of an
+expression will not go to waste.
 
 h3. `st_add_direct()`
 
-続いてハッシュテーブルに新しい関連付けを登録する関数`st_add_direct()`を
-見よう。この関数はキーが既に登録されているかどうかを検査せず、無条件
-に新しいエントリを追加する。それがつまり関数名の「`direct`」の意味だ。
+Continuing on, let us examine `st_add_direct()` which is a function that adds a
+new relation to the hash table. This function does not check if the key is
+already registered. It always adds a new entry. This is the meaning of `direct`
+in the function name.
 
 ▼ `st_add_direct()`
 <pre class="longlist">
@@ -383,12 +388,12 @@ h3. `st_add_direct()`
 (st.c)
 </pre>
 
-先程と同じくハッシュ値を求めるマクロ`do_hash()`の呼び出しがある。その
-次の計算も`FIND_ENTRY()`の最初にあったもので、ハッシュ値を実際のインデッ
-クスに変換する。
+Just as before, the `do_hash()` macro that obtains a value is called here.
+After that, the next calculation is the same as at the beginning of
+`FIND_ENTRY()`, which is to exchange the hash value for a real index.
 
-そして挿入操作自体は`ADD_DIRECT()`で実行されているようだ。これも、名前
-が大文字であることから想像できるように、マクロである。
+Then the insertion operation looks like it is implemented by `ADD_DIRECT()`.
+Since the name is all uppercase, we can anticipate that is a macro.
 
 ▼ `ADD_DIRECT()`
 <pre class="longlist">
@@ -416,23 +421,23 @@ h3. `st_add_direct()`
 (st.c)
 </pre>
 
-最初の`if`は例外的な場合を扱っているので後にして、その次から。
+The first `if` is an exception case so I will explain it afterwards.
 
-(A)`st_table_entry`を割り当て、初期化して、
+(A)Allocate and initialize a `st_table_entry`. 
 
-(B)`entry`をリストの先頭に追加する。
-こちらはリストを扱うときのイディオムだ。つまり
+(B)Insert the `entry` into the start of the list.
+This is the idiom for handling the list. In other words,
 
 <pre class="emlist">
 entry->next = list_beg;
 list_beg = entry;
 </pre>
 
-でリストの先頭にエントリを追加することができる。Lispの用語を使って
-「cons(コンス)する」と言うこともある。もし`list_beg`が`NULL`でも
-このコードは通用することを確認しよう。
+makes it possible to insert an entry to the front of the list. This is similar
+to "cons-ing" in the Lisp language. Check for yourself that even if `list_beg`
+is NULL, this code holds true.
 
-最後に、棚上げにしておいたコードを説明する。
+Finally, let me explain the code I left aside.
 
 ▼ `ADD_DIRECT()`-`rehash`
 <pre class="longlist">
@@ -445,13 +450,13 @@ list_beg = entry;
 (st.c)
 </pre>
 
-`DENSITY`とは「濃度」。つまりこの条件式ではハッシュテーブルが「混んで
-いないか」確かめている。
-`st_table`では同じ`bin_pos`を使っている値が増えるほどリンクリストが
-長くなる、つまり検索が遅くなる。だから`bin`の数に対
-して要素数が多くなりすぎたら、`bin`を増やして混雑を緩和するわけだ。
+`DENSITY` is "concentration". In other words, this conditional checks if the
+hash table is "crowded" or not. In the `st_table`, as the number of values that
+use the same `bin_pos` increases, the longer the link list becomes. In other
+words, search becomes slower. That is why for `bin` count, when the element
+count becomes too many, `bin` is increased and the crowding is reduced.
 
-現在`ST_DEFAULT_MAX_DENSITY`は
+The current `ST_DEFAULT_MAX_DENSITY` is
 
 ▼ `ST_DEFAULT_MAX_DENSITY`
 <pre class="longlist">
@@ -460,13 +465,13 @@ list_beg = entry;
 (st.c)
 </pre>
 
-と設定されているから、全ての`bin_pos`に五つの`st_table_entry`が連なって
-いるような状況になったらサイズを増やす、ということになる。
+Because of this setting, if in all `bin_pos` there are 5 `st_table_entries`
+linked up, then the size will be increased.
 
 h3. `st_insert()`
 
-`st_insert()`は`st_add_direct()`と`st_lookup()`の組み合わせにすぎないので
-この二つが分かれば簡単である。
+`st_insert()` is nothing more than combining `st_add_direct()` and
+`st_lookup()` together, so if you understand those two, this will be easy.
 
 ▼ `st_insert()`
 <pre class="longlist">
@@ -495,9 +500,9 @@ h3. `st_insert()`
 (st.c)
 </pre>
 
-既に要素がテーブルに登録されているかどうか調べ、
-登録されていないときにだけ追加する。
-実際に追加したら真を返す。追加しなかったら偽を返す。
+It checks if the element is already registered in the table. Only when it is
+not registered will it be added. If there is a insertion, return 0. If there is
+no insertion, return a 1.
 
 h2. `ID`とシンボル
 
