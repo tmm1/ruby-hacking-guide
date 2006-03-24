@@ -14,11 +14,11 @@ task :default => [:rhg]
 task :rhg => HTML+PNG
 
 rule( '.html' => '.txt'){|t|
-	generate_html( t.name, t.source )
+  generate_html( t.name, t.source )
 }
 
 PNG.zip( SVG).each{|png, svg|
-	file( png => svg){
-		sh "inkscape -z --export-png=#{png} --export-dpi=#{DPI} --file=#{svg}"
-	}
+  file( png => svg){
+    sh "inkscape -z --export-png=#{png} --export-dpi=#{DPI} --file=#{svg}"
+  }
 }
