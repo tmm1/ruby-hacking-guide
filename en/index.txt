@@ -1,4 +1,4 @@
-Translation by Vincent ISAMBART
+Translation by Vincent ISAMBART and Clifford Escobar CAOILE
 
 h1. Ruby Hacking Guide
 
@@ -9,14 +9,25 @@ C implementation of the "Ruby language":http://www.ruby-lang.org/).
 
 To fully understand it, you need a good knowledge of C and Ruby. The
 original book includes a Ruby tutorial (chapter 1), but it has not
-been translated yet, and I think there are more important chapters to
+been translated yet, and we think there are more important chapters to
 translate first. So if you have not done it yet, you should read a
 book like the "Pickaxe":http://www.rubycentral.com/book/ before.
 
-This translation is done during my free time to improve my Japanese
-and my knowledge of Ruby, and English is not my native tongue, do not
-expect too much. The book is quite big (more than 500 pages) so I
-doubt I will be able to translate it fully by myself. I need help!
+Please note that this book was based on the source code of ruby 1.7.3
+so there are a few small differences with the current version of
+ruby. However, these differences may make the source code simpler to
+understand and the Ruby Hacking Guide is a good starting point before
+looking into the ruby source code. The version of the source code used
+can be downloaded there: http://i.loveruby.net/ja/rhg/ar/ruby-rhg.tar.gz.
+
+Many thanks to "RubyForge":http://rubyforge.org for hosting us and to
+Minero AOKI to let us translate his work.
+
+h2. Help us!
+
+This translation is done during our free time, do not expect too
+much. The book is quite big (more than 500 pages) so we need help to
+translate it.
 
 People who are good in Ruby, C and Japanese or English are
 needed. Those good in Japanese (native Japanese speakers are of course
@@ -35,19 +46,18 @@ introduce yourself (who you are, your skills, how much free time you
 have). You can of course just join the mailing list to see what's
 going on. And do not hesitate to ask questions!
 
-Please note that this book was based on the source code of ruby 1.7.3
-so there are a few small differences with the current version of
-ruby. However, these differences may make the source code simpler to
-understand and the Ruby Hacking Guide is a good starting point before
-looking into the ruby source code. The version of the source code used
-can be downloaded there: http://i.loveruby.net/ja/rhg/ar/ruby-rhg.tar.gz.
+The preferred way to propose corrections/improvements is to send a
+patch on the mailing list. The patch should be done on the text files
+in the SVN repository (http://rubyforge.org/scm/?group_id=1387).
 
 The RubyForge project page is http://rubyforge.org/projects/rhg.
 
-Many thanks to "RubyForge":http://rubyforge.org for hosting us and to
-Minero AOKI to let us translate his work.
-
 h2. Table of contents
+
+Some chapter are previews. It means they have not be fully reviewed,
+some diagrams may be missing and some sentences may be a little
+rough. But it also means they are in open review, so do not hesitate
+to post suggestions on the mailing list.
 
 * Preface
 * Introduction
@@ -56,10 +66,10 @@ h3. Part 1: Objects
 
 * Chapter 1: Ruby language minimum
 * "Chapter 2: Objects":chapter02.html
-* Chapter 3: Names and name tables
-* Chapter 4: Classes and modules
+* "Chapter 3: Names and name tables":chapter03.html - PREVIEW
+* "Chapter 4: Classes and modules":chapter04.html - PREVIEW
 * Chapter 5: Garbage collection
-* Chapter 6: Variables and constants
+* "Chapter 6: Variables and constants":chapter06.html - PREVIEW
 * Chapter 7: Security
 
 h3. Part 2: Syntax analysis
