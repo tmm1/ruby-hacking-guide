@@ -37,7 +37,7 @@ class RedCloth
     text.gsub!(IMAGE_RE) do |m|
       fig_counter += 1
       stln,algn,atts,url,title,href,href_a1,href_a2 = $~[1..8]
-      "\n\np=. #{m.gsub(/`/, '')}<br>Diagram #{fig_counter}: #{title}\n\n"
+      "\n\np=. #{m.gsub(/`/, '')}<br>Figure #{fig_counter}: #{title}\n\n"
     end
   end
   
@@ -87,14 +87,14 @@ def generate_html htmlfile, txtfile
     r.sub!(TranslationByRE, '')
   else
     STDERR.puts "error: no translator defined in file #{txtfile}"
-    next
+    return
   end
 
   if md = /h1\.\s*(.+)$/.match(r)
     title = md[1]
   else
     STDERR.puts "error: no h1 section in file #{txtfile}"
-    next
+    return
   end
   
   File.open(htmlfile, 'w') do |io|
@@ -106,13 +106,13 @@ def generate_html htmlfile, txtfile
 end
 
 if __FILE__==$0
-	script_mod_time = File.mtime($0)
-	
-	Dir.glob("*.txt").each do |file|
-	  next unless /\.txt$/.match(file)
-	  html = file.sub(/txt$/, 'html')
-	  # do not regenerate if the HTML file is newer and this script has not been modified
-	  next if File.exist?(html) and File.mtime(file) < File.mtime(html) and script_mod_time < File.mtime(html)
-	  generate_html( html, file)
-	end
+  script_mod_time = File.mtime($0)
+  
+  Dir.glob("*.txt").each do |file|
+    next unless /\.txt$/.match(file)
+    html = file.sub(/txt$/, 'html')
+    # do not regenerate if the HTML file is newer and this script has not been modified
+    next if File.exist?(html) and File.mtime(file) < File.mtime(html) and script_mod_time < File.mtime(html)
+    generate_html(html, file)
+  end
 end

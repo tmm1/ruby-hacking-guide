@@ -26,7 +26,7 @@ h3. Structure of `VALUE` and objects
 
 In `ruby`, the contents of an object is expressed by a `C` structure, always
 handled via a pointer. A different kind of structure is used for each class,
-but the pointer type will always be `VALUE` (diagram 1).
+but the pointer type will always be `VALUE` (figure 1).
 
 !images/ch_object_value.png(`VALUE` and structure)!
 
@@ -195,7 +195,7 @@ h4. The use of `basic.flags`
 
 As limiting myself to saying that `basic.flags` is used for different things
 including the type of structure makes me feel bad, here's a general
-illustration for it (diagram 5). There is no need to understand everything
+illustration for it (figure 5). There is no need to understand everything
 right away, I just wanted to show its uses while it was bothering me.
 
 !images/ch_object_flags.png(Use of `flags`)!
@@ -453,7 +453,7 @@ chapter "Classes and modules".
 Because of this, `super` of the structure of `Object` points to `struct
 RClass` of the `Kernel` object. Only the `super` of Kernel is NULL. So
 contrary to what I said, if `super` is NULL, this `RClass` is the `Kernel`
-object (diagram 6).
+object (figure 6).
 
 !images/ch_object_classtree.png(Class tree at the C level)!
 
@@ -647,7 +647,7 @@ Structures that are not `T_OBJECT`, `T_MODULE` or `T_CLASS` do not have an
 `iv_tbl` member (the reason why they do not have it will be explained later).
 However, a method linking an instance to a `struct st_table` would allow
 instances to have instance variables. In `ruby`, this was solved by using a
-global `st_table`, `generic_iv_table` (diagram 7) for these associations.
+global `st_table`, `generic_iv_table` (figure 7) for these associations.
 
 !images/ch_object_givtable.png(`generic_iv_table`)!
 
@@ -1102,7 +1102,7 @@ for managing a pointer to a user defined structure" has been created on
 `dmark` is the function for when the "mark" of the mark and sweep occurs.
 
 Because explaining `struct RData` is still too complicated, for
-the time being let's just look at its representation (diagram 8). You'll read
+the time being let's just look at its representation (figure 8). You'll read
 a detailed explanation of its members in chapter 5 "Garbage collection" where
 there'll be presented once again.
 

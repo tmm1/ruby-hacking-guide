@@ -642,7 +642,7 @@ rb_singleton_class(obj)
 </pre>
 
 Now it should very easy to understand. Furthermore, to make it
-simpler, I've reorganized what is done in a diagram (diagram 1). In the
+simpler, I've reorganized what is done in a diagram (figure 1). In the
 horizontal direction is the "instance - class" relation, and in the
 vertical direction is inheritance (the superclasses are above).
 
@@ -744,7 +744,7 @@ h3. Inheritance of singleton methods
 h4. Infinite chain of classes
 
 Even a class has a class, and it's `Class`. And the class of `Class`
-is again `Class`. We find ourselves in an infinite loop (diagram 2).
+is again `Class`. We find ourselves in an infinite loop (figure 2).
 
 !images/ch_class_infloop.png(Infinite loop of classes)!
 
@@ -808,7 +808,7 @@ C++.
 
 And to implement static methods, one other thing was necessary:
 singleton methods. And by chain reaction, singleton classes are also
-necessary. Diagram 3 shows these dependency relationships.
+necessary. Figure 3 shows these dependency relationships.
 
 !images/ch_class_reqlink.png(Requirements dependencies)!
 
@@ -957,7 +957,7 @@ rb_make_metaclass(klass, super_klass  /* == RBASIC(super)->klass */)
 }
 </pre>
 
-Doing this as a diagram gives something like diagram 4. In it, the
+Doing this as a diagram gives something like figure 4. In it, the
 names between parentheses are singleton classes. This notation is
 often used in this book so I'd like you to remember it. This means
 that `obj`'s singleton class is written as `(obj)`. And the `(klass)`
@@ -968,7 +968,7 @@ is caught between a class and this class's superclass's class.
 
 From this result, and moreover when thinking more deeply, we can think
 that the superclass's class must again be the superclass's singleton
-class. You'll understand with one more inheritance level (diagram 5).
+class. You'll understand with one more inheritance level (figure 5).
 
 !images/ch_class_multi.png(Hierarchy of multi-level inheritance)!
 
@@ -986,7 +986,7 @@ class B < A
 end
 </pre>
 
-internally, a structure like diagram 6 is created.
+internally, a structure like figure 6 is created.
 
 !images/ch_class_metatree.png(Class hierarchy and metaclasses)!
 
@@ -998,7 +998,7 @@ h3. Class of a class of a class
 You've understood the working of class methods inheritance, but by
 doing that, in the opposite some questions have appeared. What is the
 class of a class's singleton class? To do this we can try
-debugging. I've made the diagram 7 from the results of this
+debugging. I've made the figure 7 from the results of this
 investigation.
 
 !images/ch_class_mmm.png(Class of a class's singleton class)!
@@ -1046,7 +1046,7 @@ confirm that.
 towards the superclass). In the first place, singleton class are
 caught between a class and its superclass, like a proxy? That's why
 when a "real" class is necessary, we have to turn back to the
-superclass (diagram 8).
+superclass (figure 8).
 
 `I_CLASS` will appear later when we will talk about include.
 
@@ -1102,10 +1102,10 @@ Then let's look at the code:
 
 First, in the first half, `boot_defclass()` is similar to
 `rb_class_boot()`, it just creates a class with its given superclass
-set. These links give us something like the left part of diagram 9.
+set. These links give us something like the left part of figure 9.
 
 And in the three lines of the second half, `(Object)`, `(Module)` and
-`(Class)` are created and set (right diagram 9). `(Object)` and
+`(Class)` are created and set (right figure 9). `(Object)` and
 `(Module)`'s classes... that is themselves... is already set in
 `rb_make_metaclass()` so there is no problem. With this, the
 metaobjects' bootstrap is finished.
@@ -1113,7 +1113,7 @@ metaobjects' bootstrap is finished.
 !images/ch_class_boot1.png(Metaobjects creation)!
 
 After taking everything into account, it gives us a the final shape
-like diagram 10.
+like figure 10.
 
 !images/ch_class_metaobj.png(Ruby metaobjects)!
 
@@ -1553,7 +1553,7 @@ In other words, this function creates an include class for the
 module. The important point is that at (B) only the pointer is moved
 on, without duplicating the table. Later, if a method is added, the
 module's body and the include class will still have exactly the
-same methods (diagram 11).
+same methods (figure 11).
 
 !images/ch_class_symbolic.png(Include class)!
 
@@ -1565,7 +1565,7 @@ function's name is `include_class_new()` so `ICLASS`'s `I` must mean
 And if you think about joining what this function and
 `rb_include_module()` do, we know that our previous expectations were not
 wrong. In brief, including is inserting the include class of a
-module between a class and its superclass (diagram 12).
+module between a class and its superclass (figure 12).
 
 !images/ch_class_include.png(Include)!
 
@@ -1586,7 +1586,7 @@ practice all methods skip include classes, with no exception.
 h3. Simulation
 
 It was complicated so let's look at a concrete example. I'd like you
-to look at diagram 13 (1). There are `m1` that included `m2` and the
+to look at figure 13 (1). There are `m1` that included `m2` and the
 `c1` class. From there, the changes made to include `m1` in `c1` are
 (2) and (3). `im` are of course include classes.
 
