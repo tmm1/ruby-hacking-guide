@@ -504,21 +504,21 @@ It checks if the element is already registered in the table. Only when it is
 not registered will it be added. If there is a insertion, return 0. If there is
 no insertion, return a 1.
 
-h2. `ID`とシンボル
+h2. `ID` and Symbols
 
-`ID`というものが何であるかということは既に述べた。任意の文字列と一対一
-に対応する数値のことで、いろいろな名前を表すために使われる。実際の型は
-`unsigned int`だ。
+I've already discussed what an `ID` is. It is an correspondence between an
+arbitrary string of characters and a value. It is used to declare various
+names. The actual data type is `unsigned int`.
 
-h3. `char*`から`ID`
+h3. From `char*` to `ID`
 
-文字列から`ID`への変換は`rb_intern()`で行っている。
-この関数はやや長いので途中を省略して掲載しよう。
+The conversion from string to `ID` is executed by `rb_intern()`. This function
+is rather long, so let's omit the middle.
 
-▼ `rb_intern()`(簡約版)
+▼ `rb_intern()` (simplified)
 <pre class="longlist">
-5451  static st_table *sym_tbl;       /*  char* → ID   */
-5452  static st_table *sym_rev_tbl;   /*  ID → char*   */
+5451  static st_table *sym_tbl;       /*  char* to ID   */
+5452  static st_table *sym_rev_tbl;   /*  ID to char*   */
 
 5469  ID
 5470  rb_intern(name)
@@ -528,13 +528,14 @@ h3. `char*`から`ID`
 5474      ID id;
 5475      int last;
 5476
-          /* 既にnameに対応するIDが登録されていたらそれを返す */
+          /* If for a name, there is a corresponding ID that is already
+          registered, then return that ID */
 5477      if (st_lookup(sym_tbl, name, &id))
 5478          return id;
 
-          /* 省略……新しいIDを作る */
+          /* omitted ... create a new ID */
 
-          /* nameとIDの関連を登録する */
+          /* register the name and ID relation */
 5538    id_regist:
 5539      name = strdup(name);
 5540      st_add_direct(sym_tbl, name, id);
@@ -545,25 +546,26 @@ h3. `char*`から`ID`
 (parse.y)
 </pre>
 
-文字列と`ID`の一対一対応は`st_table`を使って実現できる。
-特に難しいところはないだろう。
+The string and `ID` correspondence relation can be accomplished by using the
+`st_table`. There probably isn't any especially difficult part here.
 
-省略しているところでは何をしているかと言うと、グローバル変数名や
-インスタンス変数名を特別扱いしてフラグを立てているのである。
-パーサで、`ID`から変数
-の種類を知る必要があるからだ。だが`ID`の原理自体にはあまり関りがないこと
-なので、ここには載せない。
+What is the omitted section doing? It is treating global variable names and
+instance variables names as special and flagging ((attributing?)) them. This is
+because in the parser, it is necessary to know the variable's classification
+((scope? either ID_GLOBAL, ID_CLASS or ID_INSTANCE var)) from the `ID`. However,
+the fundamental part of `ID` is unrelated to this, so I won't explain it here.
 
-h3. `ID`から`char*`
+h3. From `ID` to `char*`
 
-`rb_intern()`の逆、`ID`から`char*`を得るために使うのが`rb_id2name()`である。
-御存知と思うが、`id2name`の2はtoのことだ。toとtwoの発音が同じだから
-代わりに使っているのだ。この記法はプログラムではわりとよく見かける。
+The reverse of `rb_intern()` is `rb_id2name(), which takes an `ID` and
+generates a `char*`. You probably know this, but the 2 in `id2name` is "to".
+"To" and "two" have the same pronounciation, so "2" is used for "to". This
+syntax is often seen.
 
-この関数も`ID`の種別フラグをいろいろしているために長いので、思い切り
-簡単にしてものを見ておくことにする。
+This function also sets the `ID` classification flags so it is long. Let me
+simplify it.
 
-▼ `rb_id2name()`(簡約版)
+▼ `rb_id2name()` (simplified)
 <pre class="longlist">
 char *
 rb_id2name(id)
@@ -577,23 +579,25 @@ rb_id2name(id)
 }
 </pre>
 
-ちょっと簡単にしすぎたような気もするが、
-実際に小細工を削ればこんなものなのだ。
+Maybe it seems that it is a little over-simplified, but in reality if we remove
+the details it really becomes this simple.
 
-ここで注目したいのは、検索した`name`をコピーしていないことである。`ruby`の
-APIでは返り値は常に、`free()`する必要はない(してはならない)。また引数
-を渡した場合は常にコピーして使ってくれる。つまり生成と解放が常にユーザか
-`ruby`か、片方で完結するようになっているのだ。
+The point I want to emphasize is that the found `name` is not copied. The
+`ruby` API does not require (((rather)), it forbids) the `free()`-ing of the
+return value. Also, when parameters are passed ((to the `ruby` API)), it always
+copies them. In other words, the creation and release ((of memory)) is
+completed by one side, either by the user or by `ruby`.
 
-では生成と解放を対応させることができない(渡したら渡しっぱなしになる)
-値の場合はどうするかというと、その時はRubyオブジェクトを使うようにする。
-まだ話していないが、Rubyのオブジェクトは我々が面倒を見なくとも必要が
-なくなったときに自動的に解放されるからだ。
+So then, when creation and release cannot be accomplished (when passed it is
+not returned) on a value, then a Ruby object is used. I have not yet discussed
+it, but a Ruby object is automatically released when it is no longer needed,
+even if we are not taking care of the object.
 
-h3. `VALUE`と`ID`の変換
+h3. Converting `VALUE` and `ID`
 
-`ID`はRubyレベルでは`Symbol`クラスのインスタンスとして表され、`"string".intern`の
-ようにして得ることができる。その`String#intern`の実体が`rb_str_intern()`だ。
+`ID` is shown as an instance of the `Symbol` class at the Ruby level.
+And it can be obtained like so: `"string".intern`. The implementation of
+`String#intern` is `rb_str_intern()`.
 
 ▼ `rb_str_intern()`
 <pre class="longlist">
@@ -615,16 +619,16 @@ h3. `VALUE`と`ID`の変換
 (string.c)
 </pre>
 
-この関数は`ruby`のクラスライブラリのコード例としてもなかなか手頃だ。
-`RSTRING()`を使ってキャストし、構造体メンバにアクセスしているところに
-注目してほしい。
+This function is quite reasonable as a `ruby` class library code example.
+Please pay attention to the part where `RSTRING()` is used and casted, and
+where the data structure's member is accessed.
 
-コードを読もう。まず`rb_raise()`は単なるエラー処理なのでとりあえず無視。
-先程見たばかりの`rb_intern()`があり、`ID2SYM()`がある。`ID2SYM()`は`ID`を
-`Symbol`に変換するマクロだった。
+Let's read the code. First, `rb_raise()` is merely error handling so we ignore
+it for now. The `rb_intern()` we previously examined is here, and also ID2SYM
+is here. `ID2SYM()` is a macro that converts `ID` to `Symbol`. 
 
-またこの逆の操作は`Symbol#to_s`などで行える。
-その実体は`sym_to_s`である。
+And the reverse operation is accomplished by `Symbol#to_s` and such.
+The implementation is in `sym_to_s`.
 
 ▼ `sym_to_s()`
 <pre class="longlist">
@@ -638,10 +642,11 @@ h3. `VALUE`と`ID`の変換
 (object.c)
 </pre>
 
-`SYM2ID()`は`Symbol`(`VALUE`)を`ID`に変換するマクロである。
+`SYM2ID()` is the macro that converts `Symbol` (`VALUE`) to an `ID`.
 
-なんてことはない関数に見えるが、メモリ処理まわりには注意すべきだろう。
-`rb_id2name()`は`free()`してはならない`char*`を返し、`rb_str_new2()`は引数の
-`char*`をコピーして使う(また引数を変更したりはしない)。このように
-方針が一貫しているからこそ関数の連鎖だけで書けるのである。
-
+It looks like the function is ((not doing anything unreasonable)). However, it
+is probably necessary to pay attention to the area around the memory handling.
+`rb_id2name()` returns a `char*` that must not be `free()`. `rb_str_new2()`
+copies the parameter's `char*` and uses ((the copy)) (and does not change the
+parameter). In this way the policy is consistent, which allows ((the line)) to be
+written just by chaining the functions.
