@@ -1,0 +1,36 @@
+require 'generate_html'
+
+SRC= FileList['*.txt']
+HTML=SRC.ext( 'html')
+
+DPI=180.0
+SVG_SRC = FileList['diagrams/*.svgz']
+SVG2IMG={
+	'diagrams/chapter04-diagram01.svgz'=>'images/ch_class_addsclass.png',
+	'diagrams/chapter04-diagram02.svgz'=>'images/ch_class_infloop.png',
+	'diagrams/chapter04-diagram03.svgz'=>'images/ch_class_reqlink.png',
+	'diagrams/chapter04-diagram04.svgz'=>'images/ch_class_metaclass.png',
+	'diagrams/chapter04-diagram05.svgz'=>'images/ch_class_multi.png',
+	'diagrams/chapter04-diagram06.svgz'=>'images/ch_class_metatree.png',
+	'diagrams/chapter04-diagram07.svgz'=>'images/ch_class_mmm.png',
+	'diagrams/chapter04-diagram08.svgz'=>'images/ch_class_real.png',
+	'diagrams/chapter04-diagram09.svgz'=>'images/ch_class_boot1.png',
+	'diagrams/chapter04-diagram10.svgz'=>'images/ch_class_metaobj.png',
+	'diagrams/chapter04-diagram11.svgz'=>'images/ch_class_symbolic.png',
+	'diagrams/chapter04-diagram12.svgz'=>'images/ch_class_include.png',
+	'diagrams/chapter04-diagram13.svgz'=>'images/ch_class_simulate.png',
+}
+
+task :default => [:rhg]
+task :rhg => HTML+SVG2IMG.values
+
+rule( '.html' => '.txt'){|t|
+	generate_html( t.name, t.source )
+}
+
+SVG_SRC.each{|svg|
+	png=SVG2IMG[svg]
+	file( png => svg){
+		sh "inkscape -z --export-png=#{png} --export-dpi=#{DPI} --file=#{svg}"
+	}
+}

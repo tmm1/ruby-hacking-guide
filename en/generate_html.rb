@@ -77,38 +77,42 @@ class RedCloth
 end
 
 RedClothRules = [ :refs_include, :refs_add_image_title, :inline_autolink, :inline_textile_new_code, :textile ]
-
-script_mod_time = File.mtime($0)
-
 TranslationByRE = /^Translation by (.+)$/
 
-Dir.glob("*.txt").each do |file|
-  next unless /\.txt$/.match(file)
-  
-  r = RedCloth.new(IO.read(file))
+def generate_html htmlfile, txtfile
+  r = RedCloth.new(IO.read(txtfile))
 
   if md = TranslationByRE.match(r)
     translation_by = md[1]
     r.sub!(TranslationByRE, '')
   else
-    STDERR.puts "error: no translator defined in file #{file}"
+    STDERR.puts "error: no translator defined in file #{txtfile}"
     next
   end
 
   if md = /h1\.\s*(.+)$/.match(r)
     title = md[1]
   else
-    STDERR.puts "error: no h1 section in file #{file}"
+    STDERR.puts "error: no h1 section in file #{txtfile}"
     next
   end
   
-  html = file.sub(/txt$/, 'html')
-  # do not regenerate if the HTML file is newer and this script has not been modified
-  next if File.exist?(html) and File.mtime(file) < File.mtime(html) and script_mod_time < File.mtime(html)
-  File.open(html, 'w') do |io|
-    puts "Generating '#{title}' - #{html}..."
+  File.open(htmlfile, 'w') do |io|
+    puts "Generating '#{title}' - #{htmlfile}..."
     io.write(HEADER.sub('TITLE', title))
     io.write(r.to_html(*RedClothRules))
     io.write(FOOTER.sub('TRANSLATION_BY', translation_by))
   end 
+end
+
+if __FILE__==$0
+	script_mod_time = File.mtime($0)
+	
+	Dir.glob("*.txt").each do |file|
+	  next unless /\.txt$/.match(file)
+	  html = file.sub(/txt$/, 'html')
+	  # do not regenerate if the HTML file is newer and this script has not been modified
+	  next if File.exist?(html) and File.mtime(file) < File.mtime(html) and script_mod_time < File.mtime(html)
+	  generate_html( html, file)
+	end
 end
