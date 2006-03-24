@@ -557,7 +557,7 @@ the fundamental part of `ID` is unrelated to this, so I won't explain it here.
 
 h3. From `ID` to `char*`
 
-The reverse of `rb_intern()` is `rb_id2name(), which takes an `ID` and
+The reverse of `rb_intern()` is `rb_id2name()`, which takes an `ID` and
 generates a `char*`. You probably know this, but the 2 in `id2name` is "to".
 "To" and "two" have the same pronounciation, so "2" is used for "to". This
 syntax is often seen.
