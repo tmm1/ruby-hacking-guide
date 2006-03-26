@@ -55,7 +55,7 @@ h4. What is a hash table?
 A hash table can be thought as the following: Let us think of an array with
 n items. For example, let us make n=64 (figure 1).
 
-!images/ch_name_array.jpg(Array)!
+!images/ch_name_array.png(Array)!
 
 Then let us specify a function f that takes a key and produces an integer i
 from 0 to n-1 (0-63). We call this f a hash function. f when given the same
@@ -69,7 +69,7 @@ place the value into index i of the array we have prepared. In other words,
 the index access into an array is very fast. Therefore the fundamental idea
 is to change the key into a integer.
 
-!images/ch_name_aset.jpg(Array assignment)!
+!images/ch_name_aset.png(Array assignment)!
 
 However, in the real world it isn't that easy. There is a critical problem
 with this idea. Because n is only 64, if there are more than 64
@@ -82,14 +82,14 @@ are many ways to resolve a collision.
 For example, if a collision occurs, then insert into the next element. 
 This is called open addressing. (Figure 3).
 
-!images/ch_name_nexti.jpg(Open addressing)!
+!images/ch_name_nexti.png(Open addressing)!
 
 Other than using the array like this, there are other possible approaches, like using
 a pointer to a respective linked list in each element of the array. Then when a
 collision occurs, grow the linked list. This is called chaining. (Figure
 4) `st_table` uses this chaining method.
 
-!images/ch_name_chain.jpg(Chaining)!
+!images/ch_name_chain.png(Chaining)!
 
 However, if it can be determined a priori what set of keys will be used,
 it is possible to imagine a hash function that will never create
@@ -137,7 +137,7 @@ course is used to make `st_table_entry` into a linked list. This is the chain pa
 The `st_hash_type` data type is used, but I will explain this later. First let
 me explain the other parts so you can compare and understand the roles.
 
-!images/ch_name_sttable.jpg(`st_table` data structure)!
+!images/ch_name_sttable.png(`st_table` data structure)!
 
 So, let us comment on `st_hash_type`.
 
