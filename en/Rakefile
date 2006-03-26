@@ -17,8 +17,10 @@ rule( '.html' => '.txt'){|t|
   generate_html( t.name, t.source )
 }
 
+INKSCAPE = if(ENV['INKSCAPE_PATH']) then ENV['INKSCAPE_PATH'] + "/inkscape" else "inkscape" end
+
 PNG.zip( SVG).each{|png, svg|
   file( png => svg){
-    sh "inkscape -z --export-png=#{png} --export-dpi=#{DPI} --file=#{svg}"
+    sh "#{INKSCAPE} -z --export-png=#{png} --export-dpi=#{DPI} --file=#{svg}"
   }
 }
