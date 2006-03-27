@@ -1,9 +1,6 @@
 $KCODE = 'u'
 
-begin
-  require 'rubygems'
-rescue LoadError
-end
+$LOAD_PATH.unshift('../lib')
 require 'redcloth'
 
 HEADER = <<EOS
