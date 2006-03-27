@@ -47,8 +47,9 @@ have). You can of course just join the mailing list to see what's
 going on. And do not hesitate to ask questions!
 
 The preferred way to propose corrections/improvements is to send a
-patch on the mailing list. The patch should be done on the text files
-in the SVN repository (http://rubyforge.org/scm/?group_id=1387).
+patch (attached to the mail, not just in the body of the message) on
+the mailing list. The patch should be done on the text files in the
+SVN repository (http://rubyforge.org/scm/?group_id=1387).
 
 The RubyForge project page is http://rubyforge.org/projects/rhg.
 
