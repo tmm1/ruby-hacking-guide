@@ -244,11 +244,11 @@ libraries? In fact, for extension libraries the convention is the
 same. Take the following code:
 
 <pre class="emlist">
-require "myextention"
+require "myextension"
 </pre>
 
-With this, if the loaded extension library is `myextention.so`, at
-load time, the (`extern`) function named `Init_myextention()` is
+With this, if the loaded extension library is `myextension.so`, at
+load time, the (`extern`) function named `Init_myextension()` is
 called. How they are called is beyond the scope of this chapter. For
 that, you should read the chapter 18 "Load". Here we'll just end this
 with an example of `Init`.
@@ -359,11 +359,11 @@ What should we do to find them? We should find the differences between
 the function creating normal classes and the one creating singleton
 classes. For this, we have to find the function for creating normal
 classes. That is as normal classes can be defined by
-`rb_define_class()`, for sure ahead we can expect there is a function
-defining normal classes. For the moment, it's not about the content of
-`rb_define_class()`. I have some reason to be interested in something
-that's beyond, so that's why we should first look at the call graph of
-`rb_define_class()`.
+`rb_define_class()`, it must call in a way or another a function to
+create normal classes. For the moment, we'll not look at the content
+of `rb_define_class()` itself. I have some reasons to be interested in
+something that's deeper. That's why we will first look at the call
+graph of `rb_define_class()`.
 
 <pre class="emlist">
 rb_define_class
@@ -398,10 +398,9 @@ a new class? Let's confirm that.
 (class.c)
 </pre>
 
-`Check_Type()` is the check for the type of object structure, so
-we can ignore it. `rb_raise()` is error handling so we can ignore
-it. By doing this, only `rb_class_boot()` is left. So let's look at it
-too.
+`Check_Type()` is checks the type of object structure, so we can
+ignore it. `rb_raise()` is error handling so we can ignore it. Only
+`rb_class_boot()` remains. So let's look at it.
 
 ▼ `rb_class_boot()`
 <pre class="longlist">
@@ -434,12 +433,12 @@ created and the pointer is put in its first parameter `klass`. In
 `OBJ_INFECT()` is a macro related to security. From now on, we'll
 ignore it.
 
-At (A), the `super` parameter is set in the `super` member. So it
-looks like we can conclude that `rb_class_boot()` is a function that
-creates a class inheriting from `super`.
+At (A), the `super` member of `klass`is set to the `super`
+parameter. It looks like `rb_class_boot()` is a function that creates
+a class inheriting from `super`.
 
-From that, as `rb_class_boot()` is a function creating a class, you
-should understand that `rb_class_new()` is almost the same.
+So, as `rb_class_boot()` is a function that creates a class,
+what does `rb_class_new()` is very similar.
 
 Then, let's once more look at `rb_singleton_class()`'s call graph:
 
@@ -451,11 +450,12 @@ rb_singleton_class
         rb_singleton_class_attached
 </pre>
 
-Here also `rb_class_boot()` appears. So up to that point, it's the
-same as in normal classes. What's going on after is the difference
-between normal classes and singleton classes, that is the
-characteristics of singleton classes. If you understood up to there,
-we'll just read `rb_singleton_class()` and `rb_make_metaclass()`.
+Here also `rb_class_boot()` is called. So up to that point, it's the
+same as in normal classes. What's going on after is what's different
+between normal classes and singleton classes, in other words the
+characteristics of singleton classes. If you everything's clear so
+far, we just need to read `rb_singleton_class()` and
+`rb_make_metaclass()`.
 
 h3. Compressed `rb_singleton_class()`
 
@@ -512,8 +512,9 @@ non-essential parts.
 
 The first and the second half are separated by a blank line. The first
 half handles a special case and the second half handles the general
-case. In other words, that makes the second half the trunk. That's why
-we'll keep it for later and talk about the other part.
+case. In other words, the second half is the trunk of the
+function. That's why we'll keep it for later and talk about the first
+half.
 
 Everything that is handled in the first half are non-pointer `VALUE`s,
 in other words objects without an existing C structure. First,
@@ -525,9 +526,9 @@ is reported with `rb_bug()`.
 
 `DEFER_INTS()` and `ALLOW_INTS()` both end with the same `INTS` so you
 should see a pair in them. That's the case, and they are macros
-related to signals. Because they are defined in `rubysig.h`, and you
-can guess that `INTS` is the abbreviation of interrupts. You can
-ignore them.
+related to signals. Because they are defined in `rubysig.h`, you can
+guess that `INTS` is the abbreviation of interrupts. You can ignore
+them.
 
 h3. Compressed `rb_make_metaclass()`
 
@@ -557,16 +558,15 @@ h3. Compressed `rb_make_metaclass()`
 
 We already saw `rb_class_boot()`. It creates a (normal) class using
 the `super` parameter as its superclass. After that, the
-`FL_SINGLETON` of this class is set. This is clearly
-suspicious. Thinking about the name, you can think that it is not the
-indication of singleton class.
+`FL_SINGLETON` of this class is set. This is clearly suspicious. The
+name of the function makes us think that it is not the indication of
+a singleton class.
 
 h3. What are singleton classes?
 
-After ending the previous process, furthermore as parameters, return
-values, local variables are all `VALUE`, we end up throwing away the
-declarations. That brings us to be able to compress to something like
-that:
+Continuing the simplification process, furthermore as parameters,
+return values, local variables are all `VALUE`, we can throw away the
+declarations. That makes us able to compress to the following:
 
 ▼ `rb_singleton_class() rb_make_metaclass()` (after compression)
 <pre class="longlist">
@@ -603,17 +603,16 @@ rb_make_metaclass(obj, super)
 
 The condition of the `if` statement of `rb_singleton_class()` seems
 quite complicated. However, this condition is not connected to the
-mainstream of `rb_make_metaclass()` so we'll see it later. First,
-let's think about what happens on the false branch of the `if`.
+mainstream of `rb_make_metaclass()` so we'll see it later. Let's first
+think about what happens on the false branch of the `if`.
 
-Also, the `BUILTIN_TYPE()` of `rb_make_metaclass()` is similar to
-`TYPE()` as it is a macro to get the structure type flag
-(`T_xxxx`). So the condition means "if `obj` is a class" but for the
-moment I do not want to limit ourselves to `obj` being a class. That's
-why we'll remove it.
+The `BUILTIN_TYPE()` of `rb_make_metaclass()` is similar to `TYPE()`
+as it is a macro to get the structure type flag (`T_xxxx`). That means
+this check in `rb_make_metaclass` means "if `obj` is a class". For the
+moment it's better not to limit ourselves to `obj` being a class, so
+we'll remove it.
 
-After thinking about the above conditions and synthesizing the
-function, we get this:
+With these simplifications, we get the the following:
 
 ▼ `rb_singleton_class() rb_make_metaclass()` (after recompression)
 <pre class="longlist">
@@ -641,19 +640,19 @@ rb_singleton_class(obj)
 }
 </pre>
 
-Now it should very easy to understand. Furthermore, to make it
-simpler, I've reorganized what is done in a diagram (figure 1). In the
+Now it should be very easy to understand. To make it even simpler,
+I've represented what is done with a diagram (figure 1). In the
 horizontal direction is the "instance - class" relation, and in the
 vertical direction is inheritance (the superclasses are above).
 
 !images/ch_class_addsclass.png(`rb_singleton_class`)!
 
-When comparing on this diagram the first and last part, you can
+When comparing the first and last part of this diagram, you can
 understand that `sclass` is inserted without changing the
 structure. That's all there is to singleton classes. In other words
-the inheritance is increased one step. If a method is defined there,
-this construction allows the other instances of `klass` to define
-completely different methods.
+the inheritance is increased one step. If a method is defined in a
+singleton class, this construction allows the other instances of
+`klass` to define completely different methods.
 
 h3. Singleton classes and instances
 
@@ -667,10 +666,10 @@ rb_make_metaclass(obj, super)
     klass = create a class with super as superclass;
     FL_SET(klass, FL_SINGLETON);
     RBASIC(obj)->klass = klass;
-    rb_singleton_class_attached(klass, obj);   /* this */
+    rb_singleton_class_attached(klass, obj);   /* THIS */
 </pre>
 
-Let's see in this functions what it does.
+Let's have a look at what it does.
 
 ▼ `rb_singleton_class_attached()`
 <pre class="longlist">
@@ -692,47 +691,47 @@ Let's see in this functions what it does.
 
 If the FL_SINGLETON flag of `klass` is set... in other words if it's a
 singleton class, put the `__attached__` → `obj` relation in the
-instance variable table of `klass` (`iv_tbl`). That's how the reading
-looks like (in our case `klass` is always a singleton class... in
-other words it always has `FL_SINGLETON`).
+instance variable table of `klass` (`iv_tbl`). That's how it looks
+like (in our case `klass` is always a singleton class... in other
+words its `FL_SINGLETON` flag is always set).
 
 `__attached__` does not have the `@` prefix, but it's stored in the
 instance variables table so it's still an instance variable. Such an
 instance variable can never be read at the Ruby level so it can be
-used to keep values we do not want the user to see for the system's
-exclusive use.
+used to keep values for the system's exclusive use.
 
-Let's now also think about the relationship between `klass` and
-`obj`. `klass` is the singleton class of `obj`.  In other words, this
-is to remember the instance in the singleton class. This value is used
-when the singleton class is changed, to do such things as calling hook
-methods on the instance (i.e. `obj`). For example, when a method is
-added to a singleton class, the `singleton_method_added` of `obj` is
-called. This is done because "the specification says so". There is no
-logical necessity to it.
+Let's now think about the relationship between `klass` and
+`obj`. `klass` is the singleton class of `obj`. In other words, this
+"invisible" instance variable allows the singleton class to remember
+the instance it was created from. Its value is used when the singleton
+class is changed, notably to call hook methods on the instance
+(i.e. `obj`). For example, when a method is added to a singleton
+class, the `obj`'s `singleton_method_added` method is called. There is
+no logical necessity to doing it, it was done because that's how it
+was defined in the language.
 
 But is it really all right? Storing the instance in `__attached__`
-will force a singleton class to have one attached instance. For
+will force one singleton class to have only one attached instance. For
 example, by getting (in some way or an other) the singleton class and
-calling `new`, won't a singleton class end up having multiple
+calling `new` on it, won't a singleton class end up having multiple
 instances?
 
-This cannot be because the proper checks are done to prevent the
+This cannot be done because the proper checks are done to prevent the
 creation of an instance of a singleton class.
 
 Singleton classes are in the first place for singleton
 methods. Singleton methods are methods existing only on a particular
 object. If singleton classes could have multiple instances, there
-would the same as normal classes. That's why singleton class, more
-than just having one instance, are forced to be like that.
+would the same as normal classes. That's why they are forced to only
+have one instance.
 
 h3. Summary
 
 We've done a lot, maybe made a real mayhem, so let's finish and put
 everything in order with a summary.
 
-What are singleton classes? They are classes with the `FL_SINGLETON`
-flag and that can only have one instance.
+What are singleton classes? They are classes that have the
+`FL_SINGLETON` flag set and that can only have one instance.
 
 What are singleton methods? They are methods defined in the singleton
 class of an object.

@@ -406,13 +406,13 @@ Since the name is all uppercase, we can anticipate that is a macro.
  273          bin_pos = hash_val % table->num_bins;            \
  274      }                                                    \
  275                                                           \
-          /*(A)*/                                            \
+          /* (A) */                                            \
  276      entry = alloc(st_table_entry);                       \
  277                                                           \
  278      entry->hash = hash_val;                              \
  279      entry->key = key;                                    \
  280      entry->record = value;                               \
-          /*(B)*/                                            \
+          /* (B) */                                            \
  281      entry->next = table->bins[bin_pos];                  \
  282      table->bins[bin_pos] = entry;                        \
  283      table->num_entries++;                                \
@@ -423,9 +423,9 @@ Since the name is all uppercase, we can anticipate that is a macro.
 
 The first `if` is an exception case so I will explain it afterwards.
 
-(A)Allocate and initialize a `st_table_entry`. 
+(A) Allocate and initialize a `st_table_entry`. 
 
-(B)Insert the `entry` into the start of the list.
+(B) Insert the `entry` into the start of the list.
 This is the idiom for handling the list. In other words,
 
 <pre class="emlist">
