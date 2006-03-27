@@ -91,7 +91,7 @@ def generate_html htmlfile, txtfile
   end
 
   if md = /h1\.\s*(.+)$/.match(r)
-    title = md[1]
+    title = md[1].gsub(/(<[^>]*>|`)/, '') # remove markup and backquotes from the title
   else
     STDERR.puts "error: no h1 section in file #{txtfile}"
     return
