@@ -748,11 +748,11 @@ is again `Class`. We find ourselves in an infinite loop (figure 2).
 !images/ch_class_infloop.png(Infinite loop of classes)!
 
 Up to here it's something we've already gone through. What's going
-after that is the theme of this chapter. Why does class have to make a
+after that is the theme of this chapter. Why do classes have to make a
 loop?
 
-First, in Ruby all data are objects. And again in Ruby classes are data
-so they have to be objects.
+First, in Ruby all data are objects. And classes are data so in Ruby
+they have to be objects.
 
 As they are objects, they must answer to methods. And setting the rule
 "to answer to methods you must belong to a class" made processing
