@@ -155,7 +155,7 @@ We can do this because when creating `ID`s, the whole name of the
 variables is taken into account, including the prefix: `rb_intern()`
 will return different `ID`s for "`@var`" and "`@@var`". At the Ruby
 level, the variable type is determined only by the prefix so there's
-no way to have access to a class variable called `@var` from Ruby.
+no way to access a class variable called `@var` from Ruby.
 
 h2. Constants
 
