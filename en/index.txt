@@ -1,3 +1,4 @@
+$comment(-*- coding: utf-8 -*- vim:set encoding=utf-8:)$
 Translation by Vincent ISAMBART and Clifford Escobar CAOILE
 
 h1. Ruby Hacking Guide

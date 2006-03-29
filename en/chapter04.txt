@@ -1,3 +1,4 @@
+$comment(-*- coding: utf-8 -*- vim:set encoding=utf-8:)$
 Translation by Vincent ISAMBART
 
 h1. Chapter 4: Classes and modules

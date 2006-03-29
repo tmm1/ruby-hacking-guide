@@ -10,7 +10,7 @@ HEADER = <<EOS
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta http-equiv="Content-Language" content="en-US">
   <link rel="stylesheet" type="text/css" href="rhg.css">
-  <title>TITLE</title>
+  <title>$tag(title)$</title>
 </head>
 <body>
 EOS
@@ -19,14 +19,16 @@ FOOTER = <<EOS
 <hr>
 
 The original work is Copyright &copy; 2002 - 2004 Minero AOKI.<br>
-Translation by TRANSLATION_BY<br>
+Translation by $tag(translation by)$<br>
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/"><img alt="Creative Commons License" border="0" src="http://creativecommons.org/images/public/somerights20.png"/></a><br/>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/">Creative Commons Attribution-NonCommercial-ShareAlike2.5 License</a>.
 
 </body>
 </html>
 EOS
 
-class RedCloth
+$tags = {}
+
+class RHGRedCloth < RedCloth
   # adds a caption below images
   # (and removes `code marks` for the title and alt attributes)
   def refs_add_image_title(text)
@@ -34,6 +36,7 @@ class RedCloth
     text.gsub!(IMAGE_RE) do |m|
       fig_counter += 1
       stln,algn,atts,url,title,href,href_a1,href_a2 = $~[1..8]
+      puts "Warning: the images used the the RHG should be PNGs, not JPEGs" if /\.jpe?g/i.match(url)
       "\n\np=. #{m.gsub(/`/, '')}<br>Figure #{fig_counter}: #{title}\n\n"
     end
   end
@@ -62,6 +65,30 @@ class RedCloth
     end
   end
   
+  # manages comments
+  COMMENT_RE = /\$comment\((.+?)\)\$/
+  def refs_comment(text)
+    text.gsub!(COMMENT_RE) { |m| '' }
+  end
+  
+  # manages tags
+  TAG_RE = /\$tag\((.+?)\)\$/
+  def self.replace_tags(text)
+    text.gsub(TAG_RE) do |m|
+      tag_name = $~[1]
+      if $tags[tag_name]
+        $tags[tag_name]
+      else
+        puts "Warning: The tag #{tag_name} is not defined"
+        ''
+      end
+    end
+  end
+
+  def refs_tag(text)
+    self.replace(self.class.replace_tags(text))
+  end
+  
   # adds a new type of code statement
   # contrary to the standard one of textile,
   # this one can have code on multiple lines
@@ -70,17 +97,17 @@ class RedCloth
   NEW_CODE_RE = /`(.*?)`/m
   def inline_textile_new_code(text)
     text.gsub!(NEW_CODE_RE) { |m| rip_offtags("<code>#{$~[1]}</code>") }
-  end  
+  end
 end
 
-RedClothRules = [ :refs_include, :refs_add_image_title, :inline_autolink, :inline_textile_new_code, :textile ]
+RedClothRules = [ :refs_comment, :refs_tag, :refs_include, :refs_add_image_title, :inline_autolink, :inline_textile_new_code, :textile ]
 TranslationByRE = /^Translation by (.+)$/
 
 def generate_html htmlfile, txtfile
-  r = RedCloth.new(IO.read(txtfile))
+  r = RHGRedCloth.new(IO.read(txtfile))
 
   if md = TranslationByRE.match(r)
-    translation_by = md[1]
+    $tags['translation by'] = md[1]
     r.sub!(TranslationByRE, '')
   else
     STDERR.puts "error: no translator defined in file #{txtfile}"
@@ -88,21 +115,21 @@ def generate_html htmlfile, txtfile
   end
 
   if md = /h1\.\s*(.+)$/.match(r)
-    title = md[1].gsub(/(<[^>]*>|`)/, '') # remove markup and backquotes from the title
+    $tags['title'] = md[1].gsub(/(<[^>]*>|`)/, '') # remove markup and backquotes from the title
   else
     STDERR.puts "error: no h1 section in file #{txtfile}"
     return
   end
   
   File.open(htmlfile, 'w') do |io|
-    puts "Generating '#{title}' - #{htmlfile}..."
-    io.write(HEADER.sub('TITLE', title))
+    puts "Generating '#{$tags['title']}' - #{htmlfile}..."
+    io.write(RHGRedCloth.replace_tags(HEADER))
     io.write(r.to_html(*RedClothRules))
-    io.write(FOOTER.sub('TRANSLATION_BY', translation_by))
+    io.write(RHGRedCloth.replace_tags(FOOTER))
   end 
 end
 
-if __FILE__==$0
+if __FILE__ == $0
   script_mod_time = File.mtime($0)
   
   Dir.glob("*.txt").each do |file|
