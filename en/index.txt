@@ -22,7 +22,7 @@ looking into the ruby source code. The version of the source code used
 can be downloaded here: http://i.loveruby.net/ja/rhg/ar/ruby-rhg.tar.gz.
 
 Many thanks to "RubyForge":http://rubyforge.org for hosting us and to
-Minero AOKI to let us translate his work.
+Minero AOKI for letting us translate his work.
 
 h2. Help us!
 
