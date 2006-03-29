@@ -1,0 +1,201 @@
+Translated by Clifford Escobar Caoile
+
+h1. Chapter 7 Security
+
+h3. Fundamentals
+
+I say security but I don't mean passwords or encryption. The Ruby security
+feature is used for handling untrusted objects in a environment like CGI
+programming.
+
+For example, when you want to convert a string representing a number into a
+integer, you can use the `eval` method. However. `eval` is a method that "runs
+a string as a Ruby program." If you `eval` a string from a unknown person from
+the network, it is very dangerous. However for the programmer to fully
+differentiate between safe and unsafe things is very tiresome and cumbersome.
+Therefore, it is for certain that a mistake will be made. So, let us make it
+part of the language, was reasoning for this feature.
+
+So then, how Ruby protect us from that sort of danger? Causes of dangerous
+operations, for example, opening unintended files, are roughly divided into two
+groups:
+
+* Dangerous data
+* Dangerous code
+
+For the former, the code that handles these values is created by the
+programmers themselves, so therefore it is (pretty) safe. For the latter, the
+program code absolutely cannot be trusted.
+
+Because for these causes the solution is vastly different, it is important to
+differentiate them by level. This are called security levels. The Ruby security
+level is represented by the `$SAFE` global variable. The value ranges from
+minimum value 0 to maximum value 4. When the variable is assigned, the level
+increases. Once the level is raised it can never be lowered. And for each
+level, the operations are limited.
+
+I will not explain level 1 or 3.
+Level 0 is the normal program environment and the security system is not
+running. Level 2 handles dangerous values. Level 4 handles dangerous code.
+We can skip 0 and move on to explain in detail levels 2 and 4.
+
+h4. レベル2
+
+危険な値に対処するためのレベル。通常のCGIなど。
+
+レベル2の基礎をなすのはオブジェクト単位で記憶されている汚染マークであ
+る。外部から読み込んだオブジェクト全部に汚染マークを付けておき、汚染さ
+れたオブジェクトを`eval`しようとしたり`File.open`しようとしたら例外を発生
+させて止める。
+
+それと汚染マークは「感染」する。例えば汚染した文字列の
+一部を取ると、それもやはり汚染されている。
+
+h4. レベル4
+
+危険なプログラムに対処するためのレベル。
+外部から持ってきた(素性の知れない)プログラムの実行など。
+
+レベル2では操作とそれに使う値の両方でチェックしていたわけだが、
+レベル4に
+なると操作だけで禁止対象になる。例えば`exit`、ファイルI/O、スレッド
+操作、メソッド定義の変更、などなど。もちろん汚染情報も多少は使うのだが、
+基本的には操作が基準になる。
+
+h4. セキュリティ単位
+
+`$SAFE`は見ためはグローバル変数だが実はスレッドローカルである。つまり
+Rubyのセキュリティシステムはスレッド単位で働く。Javaや.NETだとコンポー
+ネント(オブジェクト)単位で権限が設定できるが、Rubyはそこまではやって
+いない。想定するメインターゲットがCGIだからだろう。
+
+だからプログラムの一部分だけセキュリティレベルを上げたい、
+という場合は別スレッドにしてレ
+ベルを分離する。スレッドの作りかたなんてまだ説明していないわけだが、と
+りあえず以下の例だけで我慢しておいてほしい。
+
+<pre class="emlist">
+# 別スレッドでセキュリティレベルを上げる
+p($SAFE)   # デフォルトは0
+Thread.fork {    # 別スレッドを起動して
+    $SAFE = 4    # レベルを上げて
+    eval(str)    # 危険なプログラムを実行
+}
+p($SAFE)   # ブロックの外ではレベル0のまま
+</pre>
+
+h4. `$SAFE`の信頼性
+
+汚染マークの感染にしても操作の禁止にしても最終的には全て手作業で行われ
+ている。つまり使っている全ての組み込みライブラリと拡張ライブラリが抜け
+なく対処しないと途中で汚染が途切れ、安全ではなくなる。そして実際にそう
+いう穴はよく報告されている。だからとりあえず、筆者はあまり信用していな
+い。
+
+もっとも、だからと言って全てのRubyプログラムが危険であるわけでは、もち
+ろんない。`$SAFE=0`でも安全なプログラムは書けるし、`$SAFE=4`でも好き放
+題できるプログラムは書ける。ただ`$SAFE`は(まだ)過信できないというだ
+けだ。
+
+そもそも「活発な機能追加」と「セキュリティ」が両立するわけがない。どん
+どん新機能が付け加わっているのならそれに比例して穴も開きやすくなるとい
+うのは常識である。ならば当然`ruby`も危険だろうと考えるべきだ。
+
+h3. 実装
+
+ここからは実装に入るが、`ruby`のセキュリティシステムを完全に捉えるに
+は仕組みよりもむしろ「どこをチェックしているのか」を見なければならない。
+しかし今回それをやっているページはないし、いちいちリストアップするだけ
+では面白くない。そこでとりあえずこの章ではセキュリティチェックに使わ
+れる仕組みだけを解説して終えることにする。チェック用のAPIは主に以下の
+二つだ。
+
+* レベル n 以上なら例外`SecurityError`を発生する`rb_secure(n)`
+* レベル1以上のとき、文字列が汚染されていたら例外を発生する`SafeStringValue()`
+
+`SafeStringValue()`はここでは読まない。
+
+h4. 汚染マーク
+
+汚染マークとは具体的には`basic->flags`に記憶される
+フラグ`FL_TAINT`で、
+それを感染させるのは`OBJ_INFECT()`というマクロである。
+このように使う。
+
+<pre class="emlist">
+OBJ_TAINT(obj)            /* objにFL_TAINTを付ける */
+OBJ_TAINTED(obj)          /* objにFL_TAINTが付いているか調べる */
+OBJ_INFECT(dest, src)     /* srcからdestにFL_TAINTを伝染させる */
+</pre>
+
+`OBJ_TAINT()`・`OBJ_TAINTED()`はどうでもいいとして、
+`OBJ_INFECT()`だけさっと見よう。
+
+▼ `OBJ_INFECT`
+<pre class="longlist">
+ 441  #define OBJ_INFECT(x,s) do {                             \
+          if (FL_ABLE(x) && FL_ABLE(s))                        \
+              RBASIC(x)->flags |= RBASIC(s)->flags & FL_TAINT; \
+      } while (0)
+
+(ruby.h)
+</pre>
+
+`FL_ABLE()`は引数の`VALUE`がポインタであるかどうか調べる。
+両方のオブジェクトがポインタなら(つまり`flags`メンバがあるなら)、
+フラグを伝播する。
+
+h4. `$SAFE`
+
+▼ `ruby_safe_level`
+<pre class="longlist">
+ 124  int ruby_safe_level = 0;
+
+7401  static void
+7402  safe_setter(val)
+7403      VALUE val;
+7404  {
+7405      int level = NUM2INT(val);
+7406
+7407      if (level < ruby_safe_level) {
+7408          rb_raise(rb_eSecurityError, "tried to downgrade safe level from %d to %d",
+7409                   ruby_safe_level, level);
+7410      }
+7411      ruby_safe_level = level;
+7412      curr_thread->safe = level;
+7413  }
+
+(eval.c)
+</pre>
+
+`$SAFE`の実体は`eval.c`の`ruby_safe_level`だ。先に書いたとおり
+`$SAFE`は
+スレッドに固有なので、スレッドの実装がある`eval.c`に書く必要があったからだ。
+つまりC言語の都合で`eval.c`にあるだけで、本来は別の場所にあってよい。
+
+`safe_setter()`はグローバル変数`$SAFE`の`setter`である。
+つまりRubyレベルからはこの関数経由でしかアクセスできないので
+レベルを下げることはできなくなる。
+
+ただし見てのとおり`ruby_safe_level`には`static`が付いていないので
+Cレベルからはインターフェイスを無視してセキュリティレベルを変更できる。
+
+h4. `rb_secure()`
+
+▼ `rb_secure()`
+<pre class="longlist">
+ 136  void
+ 137  rb_secure(level)
+ 138      int level;
+ 139  {
+ 140      if (level <= ruby_safe_level) {
+ 141          rb_raise(rb_eSecurityError, "Insecure operation `%s' at level %d",
+ 142                   rb_id2name(ruby_frame->last_func), ruby_safe_level);
+ 143      }
+ 144  }
+
+(eval.c)
+</pre>
+
+現在のセーフレベルが`level`以上だったら例外`SecurityError`を発生。簡単だ。
+
