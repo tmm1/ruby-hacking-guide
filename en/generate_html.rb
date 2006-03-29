@@ -42,11 +42,11 @@ class RHGRedCloth < RedCloth
   end
   
   # creates links automatically
-  AUTOLINK_RE = %r{\b((?:ht|f)tp://\S+?)([^\w\/;]*?)(?=\s|<|$)}
+  AUTOLINK_RE = %r{(^|\s)((?:ht|f)tp://\S+?)([^\w\/;]*?)(?=\s|<|$)}
   def inline_autolink(text)
     text.gsub!(AUTOLINK_RE) do |m|
-      address, after = $~[1..3]
-      "\"#{address}\":#{address}#{after}"
+      before, address, after = $~[1..3]
+      "#{before}\"#{address}\":#{address}#{after}"
     end
   end
 
