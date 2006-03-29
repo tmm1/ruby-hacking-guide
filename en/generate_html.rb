@@ -42,7 +42,8 @@ class RHGRedCloth < RedCloth
   end
   
   # creates links automatically
-  AUTOLINK_RE = %r{(^|\s)((?:ht|f)tp://\S+?)([^\w\/;]*?)(?=\s|<|$)}
+  # note: the character before must not be ":" not to replace any already existing link like "Text":http://link/nantoka
+  AUTOLINK_RE = %r{(^|[^:])\b((?:ht|f)tp://\S+?)([^\w\/;]*?)(?=\s|<|$)}
   def inline_autolink(text)
     text.gsub!(AUTOLINK_RE) do |m|
       before, address, after = $~[1..3]
