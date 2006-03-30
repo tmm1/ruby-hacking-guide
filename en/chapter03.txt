@@ -1,5 +1,5 @@
 $comment(-*- coding: utf-8 -*- vim:set encoding=utf-8:)$
-Translation by Clifford Escobar CAOILE
+Translated by Clifford Escobar CAOILE
 
 h1. Chapter 3: Names and Name Table
 

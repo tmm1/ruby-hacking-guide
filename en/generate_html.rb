@@ -19,7 +19,7 @@ FOOTER = <<EOS
 <hr>
 
 The original work is Copyright &copy; 2002 - 2004 Minero AOKI.<br>
-Translation by $tag(translation by)$<br>
+Translated by $tag(translated by)$<br>
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/"><img alt="Creative Commons License" border="0" src="http://creativecommons.org/images/public/somerights20.png"/></a><br/>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/">Creative Commons Attribution-NonCommercial-ShareAlike2.5 License</a>.
 
 </body>
@@ -102,14 +102,14 @@ class RHGRedCloth < RedCloth
 end
 
 RedClothRules = [ :refs_comment, :refs_tag, :refs_include, :refs_add_image_title, :inline_autolink, :inline_textile_new_code, :textile ]
-TranslationByRE = /^Translation by (.+)$/
+TranslatedByRE = /^Translated by (.+)$/
 
 def generate_html htmlfile, txtfile
   r = RHGRedCloth.new(IO.read(txtfile))
 
-  if md = TranslationByRE.match(r)
-    $tags['translation by'] = md[1]
-    r.sub!(TranslationByRE, '')
+  if md = TranslatedByRE.match(r)
+    $tags['translated by'] = md[1]
+    r.sub!(TranslatedByRE, '')
   else
     STDERR.puts "error: no translator defined in file #{txtfile}"
     return

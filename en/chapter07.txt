@@ -1,6 +1,7 @@
-Translated by Clifford Escobar Caoile
+$comment(-*- coding: utf-8 -*- vim:set encoding=utf-8:)$
+Translated by Clifford Escobar CAOILE
 
-h1. Chapter 7 Security
+h1. Chapter 7: Security
 
 h3. Fundamentals
 
