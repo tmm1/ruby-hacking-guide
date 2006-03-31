@@ -760,7 +760,7 @@ As they are objects, they must answer to methods. And setting the rule
 easier. That's where comes the need for a class to also have a class.
 
 Let's base ourselves on this and think about the way to implement it.
-First, we can think in the most naïve way, `Class`'s class is
+First, we can try first with the most naïve way, `Class`'s class is
 `ClassClass`, `ClassClass`'s class is `ClassClassClass`..., chaining
 classes of classes one by one. But whichever the way you look at it,
 this can't be implemented effectively. That's why it's common in
@@ -776,47 +776,47 @@ h4. "Class is also an object"
 
 "Everything is an object" is often used as advertising statement when
 speaking about Ruby. And as a part of that, "Classes are also object!"
-also appears. But these expressions often go too far. To think about
-this, we have to split them in two like this:
+also appears. But these expressions often go too far. When thinking
+about these sayings, we have to split them in two:
 
 * all data are objects
 * classes are data
 
-Discussion of data and code is very hard to understand. It's better
-to, from now on, call data "things put in variables in programs", even
-if it's a very restrictive definition.
+Talking about data or code makes a discussion much harder to
+understand. That's why here we'll restrict the meaning of "data" to
+"what can be put in variables in programs".
 
 Being able to manipulate classes from programs gives programs the
-ability to manipulate themselves. This is called reflection. In object
-languages, and even more so in Ruby, it's appropriate to be able to
-directly manipulate classes.
+ability to manipulate themselves. This is called reflection. It fits
+object oriented languages, and even more Ruby with the classes it has,
+to be able to directly manipulate classes.
 
-Nevertheless, there are ways to have classes not made as objects. For
-example, there is no problem at all in offering function-style methods
-to manipulate classes. However, as there are inside the interpreter
-data structures that represent the classes, it's more natural to make
-them available directly in object oriented languages. And Ruby did
-that.
+Nevertheless, classes could be made available in a form that is not an
+object. For example, classes could be manipulated with function-style
+methods (functions defined at the top-level). However, as inside the
+interpreter there are data structures to represent the classes, it's
+more natural in object oriented languages to make them available
+directly. And Ruby did this choice.
 
-Furthermore, in Ruby the objective is all data to be objects. That's
-why it's appropriate to make classes also objects.
+Furthermore, an objective in Ruby is for all data to be
+objects. That's why it's appropriate to make them objects.
 
-By the way, there is a reason other than reflection why in Ruby
+By the way, there is a reason not linked to reflection why in Ruby
 classes had to be made objects. That is to be able to define methods
-independent from instances: what is called static methods in Java in
-C++.
+independently from instances (what is called static methods in Java in
+C++).
 
-And to implement static methods, one other thing was necessary:
-singleton methods. And by chain reaction, singleton classes are also
-necessary. Figure 3 shows these dependency relationships.
+And to implement static methods, another thing was necessary:
+singleton methods. By chain reaction, that also makes singleton
+classes necessary. Figure 3 shows these dependency relationships.
 
 !images/ch_class_reqlink.png(Requirements dependencies)!
 
 h4. Class methods inheritance
 
-In Ruby singleton methods defined in a class are called class methods,
-but their specification is a little strange. Why are class methods
-inherited?
+In Ruby, singleton methods defined in a class are called class
+methods. However, their specification is a little strange. Why are
+class methods inherited?
 
 <pre class="emlist">
 class A
@@ -845,7 +845,6 @@ Then let's look at the code defining classes.
 Class definition means of course `rb_define_class()`. Now
 let's take the call graph of this function.
 
-
 <pre class="emlist">
 rb_define_class
     rb_class_inherited
@@ -859,16 +858,16 @@ rb_define_class
 
 If you're wondering where you've seen it before, we looked at it in
 the previous section. At that time you did not see it but if you look
-closely, why does `rb_make_metaclass()` appear? As we saw
-before, this function introduces a singleton class. This is very
-suspicious. Why is this called even if we do not define a singleton
-function? Furthermore, it's not `rb_singleton_class()`, why
-is the lower level `rb_make_metaclass()` used? It looks
-like we have to check these surroundings again.
+closely, why does `rb_make_metaclass()` appear? As we saw before, this
+function introduces a singleton class. This is very suspicious. Why is
+this called even if we are not defining a singleton function?
+Furthermore, why is the lower level `rb_make_metaclass()` used instead
+of `rb_singleton_class()`? It looks like we have to check these
+surroundings again.
 
 h4. `rb_define_class_id()`
 
-Let's first start reading from its caller, `rb_define_class_id()`.
+Let's first start our reading with its caller, `rb_define_class_id()`.
 
 ▼ `rb_define_class_id()`
 <pre class="longlist">
@@ -893,9 +892,9 @@ Let's first start reading from its caller, `rb_define_class_id()`.
 `rb_class_new()` was a function that creates a class with `super` as
 its superclass. `rb_name_class()`'s name means it names a class, but
 for the moment we do note care about names so we'll skip it. After
-that there's the `rb_make_metaclass()` in question. What's bothering
-us is that when called from `rb_singleton_class()`, the parameters were
-different. Last time was like this:
+that there's the `rb_make_metaclass()` in question. I'm concerned by
+the fact that when called from `rb_singleton_class()`, the parameters
+were different. Last time was like this:
 
 <pre class="emlist">
 rb_make_metaclass(obj, RBASIC(obj)->klass);
@@ -933,22 +932,21 @@ rb_make_metaclass(obj, super)
 }
 </pre>
 
-Last time, the `if` statement was skilfully skipped, but looking once
+Last time, the `if` statement was skillfully skipped, but looking once
 again, something is done only for `T_CLASS`, in other words
-classes. This clearly looks important.  In `rb_define_class_id()`, as
+classes. This clearly looks important. In `rb_define_class_id()`, as
 it's called like this:
 
 <pre class="emlist">
 rb_make_metaclass(klass, RBASIC(super)->klass);
 </pre>
 
-let's expand `rb_make_metaclass()`'s parameter variables with this
-practical value.
-
+Let's expand `rb_make_metaclass()`'s parameter variables with this
+values.
 
 ▼ `rb_make_metaclass` (recompression)
 <pre class="longlist">
-rb_make_metaclass(klass, super_klass  /* == RBASIC(super)->klass */)
+rb_make_metaclass(klass, super_klass /* == RBASIC(super)->klass */)
 {
     sclass = create a class with super_class as superclass;
     RBASIC(klass)->klass = sclass;
@@ -960,9 +958,9 @@ rb_make_metaclass(klass, super_klass  /* == RBASIC(super)->klass */)
 Doing this as a diagram gives something like figure 4. In it, the
 names between parentheses are singleton classes. This notation is
 often used in this book so I'd like you to remember it. This means
-that `obj`'s singleton class is written as `(obj)`. And the `(klass)`
-is the singleton class for `klass`. It looks like the singleton class
-is caught between a class and this class's superclass's class.
+that `obj`'s singleton class is written as `(obj)`. And `(klass)` is
+the singleton class for `klass`. It looks like the singleton class is
+caught between a class and this class's superclass's class.
 
 !images/ch_class_metaclass.png(Introduction of a class's singleton class)!
 
@@ -1044,9 +1042,9 @@ confirm that.
 `CLASS_OF(obj)` returns the `basic.klass` of `obj`. While in
 `rb_class_real()`, all singleton classes are skipped (advancing
 towards the superclass). In the first place, singleton class are
-caught between a class and its superclass, like a proxy? That's why
-when a "real" class is necessary, we have to turn back to the
-superclass (figure 8).
+caught between a class and its superclass, like a proxy. That's why
+when a "real" class is necessary, we have to follow the superclass
+chain (figure 8).
 
 `I_CLASS` will appear later when we will talk about include.
 
@@ -1065,10 +1063,9 @@ classes, but that they are the classes of classes. I was stuck on this
 point when I started learning Ruby. As I may not be the only one, I
 would like to make this clear.
 
-Thinking about this point, the `rb_make_metaclass()` function name is
-not very good. When used in classes, it does indeed create a
-metaclass, but in the other cases, when using objects, it's not a
-metaclass.
+Thinking about this, the `rb_make_metaclass()` function name is not
+very good. When used in classes, it does indeed create a metaclass,
+but not in the other cases, when using objects.
 
 Then finally, even if you understood that some class are metaclasses,
 it's not as if there was any concrete gain. I'd like you not to care
@@ -1080,10 +1077,9 @@ We have nearly finished our talk about classes and metaclasses. But
 there is still one problem left. It's about the 3 metaobjects
 `Object`, `Module` and `Class`. These 3 cannot be created with the
 common use API. To make a class, its metaclass must be built, but like
-we saw some time ago, in the metaclass's superclass is
-`Class`. However, as `Class` has not been created yet, the metaclass
-cannot be build. So in `ruby`, only these 3 classes's creation is
-handled specially.
+we saw some time ago, the metaclass's superclass is `Class`. However,
+as `Class` has not been created yet, the metaclass cannot be build. So
+in `ruby`, only these 3 classes's creation is handled specially.
 
 Then let's look at the code:
 
@@ -1166,50 +1162,49 @@ the class can be found from the constant.
 (class.c)
 </pre>
 
-Many things can be understood before and after
-`rb_define_class_id()`... Before is the acquisition or creation of the
-class. After is the setting of the constant. We will look at it in
-more detail below.
+Many things can be understood with what's before and after
+`rb_define_class_id()`... Before we acquire or create the class. After
+we set the constant. We will look at it in more detail below.
 
 (A) In Ruby, there is an autoload function that automatically loads
-libraries when some constants are accessed. This is checked in the
+libraries when some constants are accessed. This is done in the
 `rb_autoload_xxxx()` function. You can ignore it without any problem.
 
-(B) Determines where the `name` constant has been defined in `Object`.
+(B) We determine whether the `name` constant has been defined or not
+in `Object`.
 
-(C) Get the `name` constant's value. This will be explained in detail
-in chapter 6.
+(C) Get the value of the `name` constant. This will be explained in
+detail in chapter 6.
 
-(D) We've see `rb_class_real()` some time ago. If the class `c` is a
+(D) We've seen `rb_class_real()` some time ago. If the class `c` is a
 singleton class or an `ICLASS`, it climbs the `super` hierarchy up to
-a class that is not and returns it. In short, this function is for not
-having virtual classes that must not appear at the Ruby level jump
-out.
+a class that is not and returns it. In short, this function skips the
+virtual classes that should not appear at the Ruby level.
 
 That's what we can read nearby.
 
-As around there constants are involved, it is very
-troublesome. However, we will talk about class definition in the
-constants chapter so we will stay here with a partial description.
+As around constants are involved, it is very troublesome. However, we
+will talk about class definition in the constants chapter so for the
+moment we will content ourselves with a partial description.
 
-After that, after `rb_define_class_id` there is the following:
+After `rb_define_class_id`, we can find the following:
 
 <pre class="emlist">
 st_add_direct(rb_class_tbl, id, klass);
 </pre>
 
-This part assigns the class to the constant. However, whichever the way
-you look at it you do not see that. In fact, only top-level classes
-are separated from the other constants and regrouped in
+This part assigns the class to the constant. However, whichever the
+way you look at it you do not see that. In fact, top-level classes are
+separated from the other constants and regrouped in
 `rb_class_tbl()`. The split is slightly related to the GC. It's not
 essential.
 
 h3. Class → name
 
 We understood how the class can be obtained from the class name, but
-how to do the oposite? For instance, by doing things like calling `p`
-or `Class#name`, we can get the name of the class, but how is it
-implemented ?
+how to do the opposite? By doing things like calling `p` or
+`Class#name`, we can get the name of the class, but how is it
+implemented?
 
 In fact this was already done a long time ago by
 `rb_name_class()`. The call is around the following:
@@ -1236,17 +1231,18 @@ Let's look at its content:
 </pre>
 
 `__classid__` is another instance variable that can't be seen from
-Ruby. As only `VALUE` values can be put in the instance variable
-table, the `ID` is converted to `Symbol` using `ID2SYM()`.
+Ruby. As only `VALUE`s can be put in the instance variable table, the
+`ID` is converted to `Symbol` using `ID2SYM()`.
 
 That's how we are able to find the constant name from the class.
 
-h3. 2 nesting levels and more
+h3. Nested classes
 
-So, in the case of a nesting level 1, we know the reciprocal link
-between name and class. What's left is the case of nesting level 2 and
-more, and for that it's a little more complicated. The function to
-define classes at level 2 or more is `rb_define_class_under()`.
+So, in the case of classes defined at the top-level, we know how works
+the reciprocal link between name and class. What's left is the case of
+classes defined in modules or other classes, and for that it's a
+little more complicated. The function to define these nested classes
+is `rb_define_class_under()`.
 
 ▼ `rb_define_class_under()`
 <pre class="longlist">
@@ -1285,7 +1281,7 @@ define classes at level 2 or more is `rb_define_class_under()`.
 (class.c)
 </pre>
 
-The structure is like the one of `rb_define_class()`, before the call
+The structure is like the one of `rb_define_class()`: before the call
 to `rb_define_class_id()` is the redefinition check, after is the
 creation of the reciprocal link between constant and class. The first
 half is pretty boringly similar to `rb_define_class()` so we'll skip
@@ -1296,7 +1292,7 @@ h4. `rb_set_class_path()`
 
 This function gives the name `name` to the class `klass` nested in the
 class `under`. "class path" means a name including all the nesting
-information starting from top level, for example
+information starting from top-level, for example
 "`Net::NetPrivate::Socket`".
 
 ▼ `rb_set_class_path()`
@@ -1338,7 +1334,7 @@ __classid__                       Socket
 
 It means classes defined for example in `rb_defined_class()` all have
 `__classid__` or `__classpath__` defined. So to find `under`'s
-classpath we can look up in this instance variable. This is done by
+classpath we can look up in these instance variables. This is done by
 `rb_class_path()`. We'll omit its content.
 
 h3. Nameless classes
@@ -1355,18 +1351,18 @@ If you create a class like this, we won't go through
 `rb_define_class_id()` and the classpath won't be set. In this case,
 `c` does not have any name, which is to say we get an unnamed class.
 
-However, if later it's assigned into a constant, the name will be
-attached to it.
+However, if later it's assigned into a constant, the name of this
+constant will be attached to the class.
 
 <pre class="emlist">
-SomeClass = c   # class name is SomeClass
+SomeClass = c   # the class name is SomeClass
 </pre>
 
-Strictly speaking, the name is attached after setting, the first time
-the it is requested. For instance, when calling `p` on this
+Strictly speaking, the name is attached after the assignment, the
+first time it is requested. For instance, when calling `p` on this
 `SomeClass` class or when calling the `Class#name` method. When doing
-this, `rb_class_tbl` is searched for an equal value, and must choose a
-name. Also, the following case can happen:
+this, a value equal to the class is searched in `rb_class_tbl`, and a
+name has to be chosen. The following case can also happen:
 
 <pre class="emlist">
 class A
@@ -1383,8 +1379,8 @@ all constants does not take too much time.
 
 h2. Include
 
-We only talked about classes so let's finish by doing something else
-and talk about module inclusion.
+We only talked about classes so let's finish this chapter with
+something else and talk about module inclusion.
 
 h3. `rb_include_module` (1)
 
@@ -1446,7 +1442,7 @@ ignore it. The process itself is below:
  375
  376          if (RCLASS(klass)->m_tbl == RCLASS(module)->m_tbl)
  377              rb_raise(rb_eArgError, "cyclic include detected");
- 378          /* (A) skip the inclusion if the super class already includes module */
+ 378          /* (A) skip if the superclass already includes module */
  379          for (p = RCLASS(klass)->super; p; p = RCLASS(p)->super) {
  380              switch (BUILTIN_TYPE(p)) {
  381                case T_ICLASS:
@@ -1474,9 +1470,9 @@ ignore it. The process itself is below:
 (class.c)
 </pre>
 
-First, what the (A) does block is written in the comment. It seems to be a
-special condition so let's first skip reading it for now. By extracting the
-important parts from the rest we get the following:
+First, what the (A) block does is written in the comment. It seems to
+be a special condition so let's first skip reading it for now. By
+extracting the important parts from the rest we get the following:
 
 <pre class="emlist">
 c = klass;
@@ -1487,20 +1483,20 @@ while (module) {
 </pre>
 
 In other words, it's a repetition of `module`'s `super`. What is in
-`module`'s super should be the module included by module (because
+`module`'s `super` must be a module included by `module` (because our
 intuition tells us so). Then the superclass of the class where the
 inclusion occurs is replaced with something. We do not understand much
-what, but for at the moment I saw that I felt "Ah, doesn't this look
-the addition of elements to a list (cons)?" and it suddenly make the
-story faster. In other words it's the following form:
+what, but at the moment I saw that I felt "Ah, doesn't this look the
+addition of elements to a list (like LISP's cons)?" and it suddenly
+make the story faster. In other words it's the following form:
 
 <pre class="emlist">
 list = new(item, list)
 </pre>
 
 Thinking about this, it seems we can expect that module is inserted
-between `c` and `c->super`. If it's like this, module working like
-this fits in.
+between `c` and `c->super`. If it's like this, it fits module's
+specification.
 
 But to be sure of this we have to look at `include_class_new()`.
 
@@ -1559,7 +1555,7 @@ same methods (figure 11).
 
 If you look closely at (A), the structure type flag is set to
 T_ICLASS. This seems to be the mark of an include class. This
-function's name is `include_class_new()` so `ICLASS`'s `I` must mean
+function's name is `include_class_new()` so `ICLASS`'s `I` must be
 `include`.
 
 And if you think about joining what this function and
@@ -1569,13 +1565,13 @@ module between a class and its superclass (figure 12).
 
 !images/ch_class_include.png(Include)!
 
-Then, at (D-2) the module's stored in the include class's
-`klass`. At (D-1), the module's entity's taken out... at least that's
-what I'd like to say, but in fact this check does not have any use. As
-at the beginning of this function the `T_ICLASS` check is already
-done, when arriving here there can't still be a
-`T_ICLASS`. Modification to `ruby` piled up at a fast pace during
-quite a long period of time so there are quite a few small overlooks.
+At (D-2) the module is stored in the include class's `klass`. At
+(D-1), the module's body is taken out... at least that's what I'd like
+to say, but in fact this check does not have any use. The `T_ICLASS`
+check is already done at the beginning of this function, so when
+arriving here there can't still be a `T_ICLASS`. Modification to
+`ruby` piled up at a fast pace during quite a long period of time so
+there are quite a few small overlooks.
 
 There is one more thing to consider. Somehow the include class's
 `basic.klass` is only used to point to the module's body, so for
@@ -1586,9 +1582,9 @@ practice all methods skip include classes, with no exception.
 h3. Simulation
 
 It was complicated so let's look at a concrete example. I'd like you
-to look at figure 13 (1). There are `m1` that included `m2` and the
-`c1` class. From there, the changes made to include `m1` in `c1` are
-(2) and (3). `im` are of course include classes.
+to look at figure 13 (1). We have the `c1` class and the `m1` module
+that includes `m2`. From there, the changes made to include `m1` in
+`c1` are (2) and (3). `im`s are of course include classes.
 
 !images/ch_class_simulate.png(Include)!
 
@@ -1598,7 +1594,7 @@ Well, now we can explain the part of `rb_include_module()` we skipped.
 
 ▼ `rb_include_module` (avoiding double inclusion)
 <pre class="longlist">
- 378  /* (A) skip if module's already included */
+ 378  /* (A) skip if the superclass already includes module */
  379  for (p = RCLASS(klass)->super; p; p = RCLASS(p)->super) {
  380      switch (BUILTIN_TYPE(p)) {
  381        case T_ICLASS:
@@ -1618,15 +1614,16 @@ Well, now we can explain the part of `rb_include_module()` we skipped.
 (class.c)
 </pre>
 
-In the `T_ICLASS` in `klass`'s superclass (`p`), if there is something
-with the same table as the one of the module we want to include
-(`module`), include (`module`), it's `module`'s include class. That's
-why we skip to not include it twice. But if there is a module included
-by this module (`module->super`), this would be checking twice.
+If one of the `T_ICLASS`es (include classes) that are in `klass`'s
+superclasses (`p`) has the same table as one of the modules we want to
+include (`module`), it's an include class for `module`. That's why we
+skip the inclusion to not include the module twice. If this module
+includes an other module (`module->super`), we check this once more.
 
-However, `p` is a module that has been included once, so its included
-modules must already be included... that's what I thought for a
-moment, but we can have the following context:
+However, when we skip an inclusion, `p` is a module that has been
+included once, so its included modules must already be
+included... that's what I thought for a moment, but we can have the
+following context:
 
 <pre class="emlist">
 module M
