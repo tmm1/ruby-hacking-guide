@@ -40,67 +40,72 @@ Level 0 is the normal program environment and the security system is not
 running. Level 2 handles dangerous values. Level 4 handles dangerous code.
 We can skip 0 and move on to explain in detail levels 2 and 4.
 
-h4. レベル2
+h4. Level 2
 
-危険な値に対処するためのレベル。通常のCGIなど。
+This level is for dangerous data, for example, in normal CGI
+applications, etc.
 
-レベル2の基礎をなすのはオブジェクト単位で記憶されている汚染マークであ
-る。外部から読み込んだオブジェクト全部に汚染マークを付けておき、汚染さ
-れたオブジェクトを`eval`しようとしたり`File.open`しようとしたら例外を発生
-させて止める。
+A per-object "dirty mark" serves as the basis for the Level 2
+implementation. All objects read in externally are marked dirty, and
+any attempt to `eval` or `File.open` with a dirty object will cause an
+exception to be raised and the attempt will be stopped.
 
-それと汚染マークは「感染」する。例えば汚染した文字列の
-一部を取ると、それもやはり汚染されている。
+This dirty mark is "infectious". For example, when taking a part of a
+dirty string, that part is also dirty.
 
-h4. レベル4
+h4. Level 4
 
-危険なプログラムに対処するためのレベル。
-外部から持ってきた(素性の知れない)プログラムの実行など。
+This level is for dangerous programs, for example, running external
+(unknown) programs, etc.
 
-レベル2では操作とそれに使う値の両方でチェックしていたわけだが、
-レベル4に
-なると操作だけで禁止対象になる。例えば`exit`、ファイルI/O、スレッド
-操作、メソッド定義の変更、などなど。もちろん汚染情報も多少は使うのだが、
-基本的には操作が基準になる。
+At level 2, operations and the data it uses are checked, but at level
+4, operations themselves are restricted. For example, `exit`, file
+I/O, thread manipulation, redefining methods, etc. Of course, the
+dirty mark information is used, but basically the operations are the
+criteria.
 
-h4. セキュリティ単位
+h4. Unit of Security
 
-`$SAFE`は見ためはグローバル変数だが実はスレッドローカルである。つまり
-Rubyのセキュリティシステムはスレッド単位で働く。Javaや.NETだとコンポー
-ネント(オブジェクト)単位で権限が設定できるが、Rubyはそこまではやって
-いない。想定するメインターゲットがCGIだからだろう。
+`$SAFE` looks like a global variable but is in actuality a thread
+local variable. In other words, Ruby's security system works on units
+of thread. In Java and .NET, rights can be set per component (object),
+but Ruby does not implement that. The assumed main target was probably
+CGI.
 
-だからプログラムの一部分だけセキュリティレベルを上げたい、
-という場合は別スレッドにしてレ
-ベルを分離する。スレッドの作りかたなんてまだ説明していないわけだが、と
-りあえず以下の例だけで我慢しておいてほしい。
+Therefore, if one wants to raise the security level of one part of the
+program, then it should be made into a different thread and have its
+security level raised. I haven't yet explained how to create a thread,
+but I will show an example here:
 
 <pre class="emlist">
-# 別スレッドでセキュリティレベルを上げる
-p($SAFE)   # デフォルトは0
-Thread.fork {    # 別スレッドを起動して
-    $SAFE = 4    # レベルを上げて
-    eval(str)    # 危険なプログラムを実行
+# Raise the security level in a different thread
+p($SAFE)   # 0 is the default
+Thread.fork {    # Start a different thread
+    $SAFE = 4    # Raise the level 
+    eval(str)    # Run the dangerous program
 }
-p($SAFE)   # ブロックの外ではレベル0のまま
+p($SAFE)   # Outside of the block, the level is still 0
 </pre>
 
-h4. `$SAFE`の信頼性
+h4. Reliability of `$SAFE`
 
-汚染マークの感染にしても操作の禁止にしても最終的には全て手作業で行われ
-ている。つまり使っている全ての組み込みライブラリと拡張ライブラリが抜け
-なく対処しないと途中で汚染が途切れ、安全ではなくなる。そして実際にそう
-いう穴はよく報告されている。だからとりあえず、筆者はあまり信用していな
-い。
+Even with implementing the spreading of dirty marks, or restricting
+operations, ultimately it is still handled manually. In other words,
+internal libraries and external libraries must be completely
+compatible and if they don't, then the partway the "dirty" operations
+will not spread and the security will be lost. And actually this kind
+of hole is often reported. For this reason, this writer does not
+wholly trust it.
 
-もっとも、だからと言って全てのRubyプログラムが危険であるわけでは、もち
-ろんない。`$SAFE=0`でも安全なプログラムは書けるし、`$SAFE=4`でも好き放
-題できるプログラムは書ける。ただ`$SAFE`は(まだ)過信できないというだ
-けだ。
+That is not to say, of course, that all Ruby programs are dangerous.
+Even at `$SAFE=0` it is possible to write a secure program, and even
+at `$SAFE=4` it is possible to write a program that fits your whim.
+However, one cannot put too much confidence on `$SAFE` (yet).
 
-そもそも「活発な機能追加」と「セキュリティ」が両立するわけがない。どん
-どん新機能が付け加わっているのならそれに比例して穴も開きやすくなるとい
-うのは常識である。ならば当然`ruby`も危険だろうと考えるべきだ。
+In the first place, functionality and security do not go together. It
+is common sense that adding new features can make holes easier to
+open. Therefore it is prudent to think that `ruby` can probably be
+dangerous.
 
 h3. 実装
 
