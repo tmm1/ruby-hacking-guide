@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*- vim:set encoding=utf-8:
 RHGAddress = 'rubyforge.org:/var/www/gforge-projects/rhg/'
 address = RHGAddress
 upload_images = false 
