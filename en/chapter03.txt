@@ -201,7 +201,7 @@ typically most of the code is the same. Only the parts where the
 implementation changes with a differing data type will bundled up into a
 function, and a pointer to that function will be used. In this fashion, the
 majority of the code that makes up the hash table implementation can
-((つかいまわす ?= utilize it)).
+use it.
 
 In object-oriented languages, in the first place, you can attach a procedure
 to an object and pass it (around), so this mechanism is not necessary.
@@ -551,10 +551,10 @@ The string and `ID` correspondence relationship can be accomplished by using the
 `st_table`. There probably isn't any especially difficult part here.
 
 What is the omitted section doing? It is treating global variable names and
-instance variables names as special and flagging ((attributing?)) them. This is
-because in the parser, it is necessary to know the variable's classification
-((scope? either ID_GLOBAL, ID_CLASS or ID_INSTANCE var)) from the `ID`. However,
-the fundamental part of `ID` is unrelated to this, so I won't explain it here.
+instance variables names as special and flagging them. This is because in the
+parser, it is necessary to know the variable's classification from the `ID`.
+However, the fundamental part of `ID` is unrelated to this, so I won't explain
+it here.
 
 h3. From `ID` to `char*`
 
@@ -585,8 +585,8 @@ the details it really becomes this simple.
 
 The point I want to emphasize is that the found `name` is not copied. The
 `ruby` API does not require (or rather, it forbids) the `free()`-ing of the
-return value. Also, when parameters are passed ((to the `ruby` API)), it always
-copies them. In other words, the creation and release ((of memory)) is
+return value. Also, when parameters are passed, it always
+copies them. In other words, the creation and release is
 completed by one side, either by the user or by `ruby`.
 
 So then, when creation and release cannot be accomplished (when passed it is
@@ -645,9 +645,9 @@ The implementation is in `sym_to_s`.
 
 `SYM2ID()` is the macro that converts `Symbol` (`VALUE`) to an `ID`.
 
-It looks like the function is ((not doing anything unreasonable)). However, it
+It looks like the function is not doing anything unreasonable. However, it
 is probably necessary to pay attention to the area around the memory handling.
 `rb_id2name()` returns a `char*` that must not be `free()`. `rb_str_new2()`
-copies the parameter's `char*` and uses ((the copy)) (and does not change the
-parameter). In this way the policy is consistent, which allows ((the line)) to be
+copies the parameter's `char*` and uses the copy (and does not change the
+parameter). In this way the policy is consistent, which allows the line to be
 written just by chaining the functions.
