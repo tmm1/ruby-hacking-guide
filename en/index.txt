@@ -68,10 +68,10 @@ h3. Part 1: Objects
 
 * Chapter 1: Ruby language minimum
 * "Chapter 2: Objects":chapter02.html
-* "Chapter 3: Names and name tables":chapter03.html - PREVIEW
-* "Chapter 4: Classes and modules":chapter04.html - PREVIEW
+* "Chapter 3: Names and name tables":chapter03.html
+* "Chapter 4: Classes and modules":chapter04.html
 * Chapter 5: Garbage collection
-* "Chapter 6: Variables and constants":chapter06.html - PREVIEW
+* "Chapter 6: Variables and constants":chapter06.html
 * Chapter 7: Security
 
 h3. Part 2: Syntax analysis

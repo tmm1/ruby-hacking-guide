@@ -142,7 +142,7 @@ if __FILE__ == $0
     html = file.sub(/txt$/, 'html')
     # do not regenerate if the HTML file is newer and this script has not been modified
     next if File.exist?(html) and File.mtime(file) < File.mtime(html) and script_mod_time < File.mtime(html)
-    #generate_html(html, file)
+    generate_html(html, file)
   end
   
   if ARGV[0] == '--make-zip'
