@@ -4,6 +4,7 @@ $KCODE = 'u'
 
 $LOAD_PATH.unshift('../lib')
 require 'redcloth'
+require 'fileutils'
 
 HEADER = <<EOS
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -29,6 +30,7 @@ Translated by $tag(translated by)$<br>
 EOS
 
 $tags = {}
+$tags['generation day'] = Time.now.strftime("%Y-%d-%m")
 
 class RHGRedCloth < RedCloth
   # adds a caption below images
@@ -140,6 +142,34 @@ if __FILE__ == $0
     html = file.sub(/txt$/, 'html')
     # do not regenerate if the HTML file is newer and this script has not been modified
     next if File.exist?(html) and File.mtime(file) < File.mtime(html) and script_mod_time < File.mtime(html)
-    generate_html(html, file)
+    #generate_html(html, file)
+  end
+  
+  if ARGV[0] == '--make-zip'
+    DestDir = "rhg-#{$tags['generation day']}"
+    DestZip = "#{DestDir}.zip"
+    FileUtils.rm_r(DestDir, :force => true)
+    
+    to_process = [ 'index.html' ]
+    to_process.each do |file_name|
+      dir = File.dirname(file_name)
+      if dir == '.' then dir = DestDir else dir = "#{DestDir}/#{dir}" end
+      FileUtils.mkdir_p(dir)
+      FileUtils.cp(file_name, dir)
+
+      next unless /\.html/.match(file_name)
+
+      content = IO.readlines(file_name).join
+      content.scan(%r{<(?:a|img|link)\b[^>]*?\b(?:href|src)="(.+?)"}) do |found_file,|
+        to_process << found_file unless %r{^(/|http://)}.match(found_file) or to_process.include?(found_file)
+      end
+    end
+    FileUtils.rm(DestZip, :force => true)
+    if system("zip -r9 #{DestZip} #{DestDir}")
+      FileUtils.rm_r(DestDir, :force => true)
+    else
+      STDERR.puts "Error when trying to zip files"
+      exit 1
+    end
   end
 end

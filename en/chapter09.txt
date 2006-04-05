@@ -221,7 +221,7 @@ ELSE stmt END`".
 
 That's it.
 
-Here I would like you to pay attention to the punctuation with
+Here I would like you to pay attention to the split done with
 `|`. With just this, one more rule is added. In fact, punctuating with
 `|` is just a shorter way to repeat the left side. The previous
 example has exactly the same meaning as the following:
@@ -233,11 +233,10 @@ if_stmt: IF expr THEN stmt ELSE stmt END
 
 This means two rules are defined in the example.
 
-This is not enough to complete the definition of the `if` statement.
-
-これだけで`if`文の定義が完結したわけではない。`expr`や`stmt`なんて記号
-はスキャナから送られてくるはずがないから、それがどういう並びなのかをちゃ
-んと定義しないといけない。Rubyに近付けるべく、大胆に規則を足してみよう。
+This is not enough to complete the definition of the `if`
+statement. That's because the symbols `expr` and `stmt` are not sent
+by the scanner, rules must be defined. To be closer to Ruby, let's
+boldly add some rules.
 
 <pre class="emlist">
 stmt   : if_stmt
@@ -255,6 +254,10 @@ funcall: IDENTIFIER '(' args ')'
 
 args   : expr             /* only one parameter */
 </pre>
+
+I added two elements. First, comments of the same form as in C, and
+character expressed using something like `'='`. This `'='` is also of
+course a symbol. 
 
 新しい要素を二つ使った。まずC言語と同じ形式のコメント、それから`'='`のよ
 うな文字の表現だ。この`'='`もやはり記号である。
