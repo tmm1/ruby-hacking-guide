@@ -255,28 +255,28 @@ funcall: IDENTIFIER '(' args ')'
 args   : expr             /* only one parameter */
 </pre>
 
-I added two elements. First, comments of the same form as in C, and
-character expressed using something like `'='`. This `'='` is also of
-course a symbol. 
+I used two new elements. First, comments of the same form as in C, and
+character expressed using `'='`. This `'='` is also of course a
+symbol. Symbols like "=" are different from numbers as there is only
+one variety for them. That's why for symbols where can also use `'='`.
+It would be great to be able to use for strings for, for example,
+reserved words, but due to limitations of the C language this cannot
+be done.
 
-新しい要素を二つ使った。まずC言語と同じ形式のコメント、それから`'='`のよ
-うな文字の表現だ。この`'='`もやはり記号である。
-「=」のような記号は数などと違ってただ一種類しか
-ないので、記号もそのまま`'='`でいいのだ。と来れば予約語などにも文字列を
-そのまま使いたくなるが、C言語の制約のためそれはできない。
+We add rules like this, to the point we complete writing all the
+grammar. With `yacc`, the left side of the first written rule is "the
+whole grammar we want to express". So in this example, `stmt`
+expresses the whole program.
 
-こういうふうに規則を増やしていって、従うべき規則全体が書ければ文法ので
-きあがりだ。`yacc`では一番上に書いた規則の左辺が「表現したい文法全体」を
-表すことになっているので、この例なら`stmt`がプログラム全体を表すことにな
-る。
+It was a little too abstract. Let's explain this a little more
+concretely. By "`stmt` expresses the whole program", I mean `stmt` and
+the rows of symbols expressed as equivalent by the rules, are all
+recognized as grammar. For example, `stmt` and `stmt` are
+equivalent. Of course. Then `expr` is equivalent to `stmt`. That's
+expressed like this in the rule. Then, `NUMBER` and `stmt` are
+equivalent. That's because `NUMBER` is `expr` and `expr` is `stmt`.
 
-ちょっと抽象的にすぎた。もう少し具体的に説明しよう。「`stmt`がプログラム
-全体を表す」というのは、`stmt`と規則上「等しい」記号の並び全てが文法とし
-て認められる、ということである。例えばまず、`stmt`は`stmt`と等しい。あたり
-まえだ。次に、`expr`は`stmt`と等しい。これは規則そのままだ。そして次に、
-`NUMBER`は`stmt`と等しい。なぜなら`NUMBER`は`expr`で`expr`は`stmt`だからだ。
-
-もちろんもっと複雑なものも等しいと言える。
+We can also say that more complicated things are equivalent.
 
 <pre class="emlist">
               stmt
@@ -290,10 +290,11 @@ IF IDENTIFIER THEN expr END
 IF IDENTIFIER THEN NUMBER END
 </pre>
 
-ここまで展開したところで全部スキャナから送られてくる記号になったようだ。
-つまりこういう記号の並びはプログラムとして正しいということである。逆に
-言えば、こういう記号の並びがスキャナから送られてくるとパーサは展開の逆
-の順序で入力を理解していける。
+In the statement developed here, at the end all symbols are ones sent
+by the scanner. That means this expression is a correct program. Or
+putting it the other way around, if this sequence of symbols is sent
+by the scanner, the parser will understand it in the opposite way it
+was developed.
 
 <pre class="emlist">
 IF IDENTIFIER THEN NUMBER END
@@ -307,36 +308,43 @@ IF IDENTIFIER THEN expr END
               stmt
 </pre>
 
-そして`stmt`はプログラム全体を表す記号だ。だからこの記号列はプログラムと
-して正しい。と、パーサは思うことだろう。そうなるとパースルーチン
-`yyparse()`は成功したという印に0を返して終了する。
+And `stmt` is a symbol expressing the whole program. That's why this
+sequence of symbols is a correct program for the parser. When it's the
+case, the parsing routine `yyparse()` ends returning 0.
 
-ちなみに専門用語だとパース成功のことを受理(accept)と言う。
-パーサはお役所みたいなもんで、自分の指定した枠にカッチリはめた
-書類を提出してくれないと即つっぱねるわけだ。acceptされる記号列とい
-うのはその枠にちゃんとはまっているのである。妙に指定が細かいところとか、
-わざわざ難解な用語を使うあたり、パーサとお役所はかなり似ている。
+By the way, the technical term expressing that the parser succeeded is
+that it "accepted" the input. The parser is like a government office:
+if you do not fill the documents in the boxes exactly like he asked
+you to, he'll refuse them. The accepted sequences of symbols are the
+ones for which the boxes where filled correctly. Parser and government
+office are strangely similar for instance in the fact that they care
+about details in specification and that they use complicated terms.
 
-h3. 終端記号と非終端記号
+h3. Terminal symbols and nonterminal symbols
 
-さて、どさくさに紛れて「スキャナから来る記号」なんて言葉を説明なしで入
-れてみたわけだが、改めて説明しよう。実は一口に記号と言っても二種類ある。
+Well, in the confusion of the moment I used without explaining it the
+expression "symbols coming from the scanner". So let's explain this. I
+use one word "symbol" but there are two types.
 
-一つはスキャナから送られてくる記号、例えば`IF`、`THEN`、`END`、`'='`など
-である。これを終端記号(terminal symbol)と言う。先程のようにどんどん
-展開したときに一番端っこに並ぶからだ。本章では終端記号は常に全て大文字
-で記述する。ただし`'='`のようにクオートでくくってあるものは特別だ。この
-類の記号は例外なく終端記号である。
+The first type of the symbols are the ones sent by the scanner. They
+are for example, `IF`, `THEN`, `END`, `'='`, ... They are called
+terminal symbols. That's because like before when we did the quick
+expansion we find them aligned at the end. In this chapter terminal
+symbols are always written in capital letters. However, symbols like
+`'='` between quotes are special. Symbols like this are all terminal
+symbols, without exception.
 
-もう一つはスキャナからは絶対に来ない記号、例えば`if_stmt`、`expr`、
-`stmt`である。こういう記号を非終端記号(nonterminal symbol)と
-言う。非終端記号はスキャナから来ないわけだから、パーサの中だけの存在だ。
-そして非終端記号はいつか必ず規則の左辺に現れる。本章では非終端記号は全
-て小文字で記述する。
+The other type of symbols are the ones that never come from the
+scanner, for example `if_stmt`, `expr` or `stmt`. They are called
+nonterminal symbols. As they don't come from the scanner, they only
+exist in the parser. Nonterminal symbols also always appear at one
+moment or the other as the left side of a rule. In this chapter,
+nonterminal symbols are always written in lower case letters.
 
-h3. テストの方法
+h3. How to test
 
-ここらで文法ファイルを`yacc`で実際に処理する方法を教えておこう。
+I'm now going to tell you the way to process the grammar file with
+`yacc`.
 
 <pre class="emlist">
 %token A B C D E
@@ -347,11 +355,11 @@ list: A B C
 de  : D E
 </pre>
 
-まず使っている終端記号を`%token`のあとに全て並べる。
-ただしクオートを使った記号(`'='`など)は書かなくてよい。
-そして`%%`で区切って文法を書く。これだけだ。
+First, put all terminal symbols used after `%token`. However, you do
+not have to type the symbols with quotes (like `'='`). Then, put `%%`
+to mark a change of section and write the grammar. That's all.
 
-では処理してみよう。
+Let's now process this.
 
 <pre class="screen">
 % yacc first.y
@@ -360,10 +368,10 @@ first.y  y.tab.c
 %
 </pre>
 
-UNIXツールの常として「沈黙は成功の意」である。
+Like most Unix tools, "silence means success".
 
-それから、規則(群)の最後にセミコロンが必要な`yacc`も存在する。
-そのときは次のようにしよう。
+There's also implementations of `yacc` that need semicolons at the end
+of (groups of) rules. When it's the case we need to do the following:
 
 <pre class="emlist">
 %token A B C D E
@@ -376,19 +384,19 @@ de  : D E
     ;
 </pre>
 
-筆者はこのセミコロンが嫌いなので本書では常に省略する。
+I hate these semicolons so in this book I'll never use them.
 
-h3. 空規則
+h3. Void rules
 
-ではもう少し`yacc`の文法記述の定石をいくつか見ておくことにする。
-まずは空規則から紹介しよう。
+Let's now look a little more at some of the established ways of
+grammar description. I'll first introduce void rules.
 
 <pre class="emlist">
 void:
 </pre>
 
-右辺に何もない。ということは、記号`void`は「無」と等しいということであ
-る。例えば次の二つの`target`は全く同じ意味になる。
+There's nothing on the right side, this rule is "void". For example,
+the two following `target`s means exactly the same thing.
 
 <pre class="emlist">
 target: A B C
@@ -397,8 +405,8 @@ target: A void B void C
 void  :
 </pre>
 
-こんなものが何の役に立つのだろうか。それがとても役に立つのだ。
-例えば次のように。
+What is the use of such a thing? It's very useful. For example in the
+following case.
 
 <pre class="emlist">
 if_stmt : IF expr THEN stmts opt_else END
@@ -407,13 +415,14 @@ opt_else:
         | ELSE stmts
 </pre>
 
-空規則を使うことで「`else`節は省略される(無)かもしれない」ことを
-うまく表現できた。先程のように同じような規則を二つ並べて書くよりも
-こちらのほうが簡潔だし、責任が分散しなくてよい。
+Using void rules, we can express cleverly the fact that "the `else`
+section may be omitted". Compared to the rules made previously using
+two definitions, this way is shorter and we do not have to disperse
+the burden.
 
-h3. 再帰定義
+h3. Recursive definitions
 
-次の例はもう少しわかりにくい。
+The following example is still a little hard to understand.
 
 <pre class="emlist">
 list: ITEM         /* rule 1 */
@@ -580,7 +589,7 @@ program: A B C { /* ここがアクション */ }
 還元する瞬間にこのアクションを実行してくれる。アクションでは何をしようと
 自由だ。Cのコードならだいたいなんでも書ける。
 
-h3. 記号の値
+h3. Value of symbols
 
 そしてここからがさらに重要なのだが、全ての記号には「その値」というもの
 がある。終端記号も非終端記号もだ。終端記号はスキャナから来るからその値
