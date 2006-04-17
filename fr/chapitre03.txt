@@ -217,15 +217,17 @@ que ce genre d'astuce n'est pas nécessaire. Ou alors, peut-être est-il plus
 juste de dire que ces astuces sont directement implémentées comme fonctionnalités
 du langage.
 
-h3. `st_hash_type` example
+h3. Un exemple pour `st_hash_type`
 
-The usage of a data structure like `st_hash_type` is good as an
-abstraction. On the other hand, what kind of code it actually passes
-through may be difficult to understand. If we do not examine what sort of
-function is used for `hash` or `compare`, we will not grasp the reality.
-To understand this, it is probably sufficient to look at `st_init_numtable()`
-introduced in the previous chapter. This function creates a table for
-integer data type keys.
+L'utilisation d'une structure de données telle que `st_hash_type` constitue
+une bonne abstraction. D'un autre coté, cela rend peut-être plus difficile
+la compréhension de quel _genre_ de code est réellement exprimé à travers elle.
+Si nous ne regardons pas ce que les fonctions `hash` et `compare` seront en
+réalité, nous n'allons pas tout saisir. Pour comprendre le tout, un coup d'œil
+sérieux à `st_init_numtable()`, introduit au chapitre précédent, devrait être
+suffisant. Cette fonction crée une table de hachage pour des clés de type de
+donnée entier.
+
 
 ▼ `st_init_numtable()`
 <pre class="longlist">
@@ -238,9 +240,9 @@ integer data type keys.
 (st.c)
 </pre>
 
-`st_init_table()` is the function that allocates the table memory and so
-on. `type_numhash` is an `st_hash_type` (it is the member named "type" of `st_table`).
-Regarding this `type_numhash`:
+`st_init_table()` est la fonction qui alloue la table en mémoire et ce genre
+de chose. `type_numhash` est un `st_hash_type` (c'est le membre nommé "type"
+de `st_table`). Regardons de plus près ce `type_numhash` :
 
 ▼ `type_numhash`
 <pre class="longlist">
@@ -266,14 +268,15 @@ Regarding this `type_numhash`:
 (st.c)
 </pre>
 
-Very simple. The table that the `ruby` interpreter uses is by and large
-this `type_numhash`.
+Très simple : la table que l'interprétateur `ruby` utilise est globalement
+ce `type_numhash`.
 
 h3. `st_lookup()`
 
-Now then, let us look at the function that uses this data structure. First,
-it's a good idea to look at the function that does the searching. Shown below is the
-function that searches the hash table, `st_lookup()`.
+Bien. Maintenant, voyons la fonction qui utilise cette structure de données.
+D'abord, c'est une bonne idée de regarder la fonction qui réalise la recherche.
+Voici ci-dessous la fonction qui effectue une recherche à l'intérieur de la
+table de hachage, `st_lookup()`.
 
 ▼ `st_lookup()`
 <pre class="longlist">
@@ -301,8 +304,8 @@ function that searches the hash table, `st_lookup()`.
 (st.c)
 </pre>
 
-The important parts are pretty much in `do_hash()` and `FIND_ENTRY()`. Let us
-look at them in order.
+Les parties importantes sont assurément `do_hash()`et `FIND_ENTRY()`. Examinons-les
+l'une après l'autre.
 
 ▼ `do_hash()`
 <pre class="longlist">
@@ -311,18 +314,19 @@ look at them in order.
 (st.c)
 </pre>
 
-Just in case, let us write down the macro body that is difficult to understand:
+Juste au cas où, écrivons à part le corps de la macro qui est difficile à saisir :
 
 <pre class="emlist">
 (table)->type->hash
 </pre>
 
-is a function pointer where the `key` is passed as a parameter. This is the
-syntax for calling the function. `*` is not applied to `table`. In other words,
-this macro is a hash value generator for a `key`, using the prepared hash
-function `type->hash` for each data type.
+C'est un pointeur vers une fonction, auquel on passe la clé `key`. C'est la
+syntaxe utiliséecpour appeler la fonction. `*` ne s'applique pas à `table`.
+En définitive, cette maxcro est un générateur de valeur de hachage pour une
+clé `key`, qui utilise la fonction de hachage pré-existance `type->hash`
+selon le type de données.
 
-Next, let us examine `FIND_ENTRY()`.
+Voyons ensuite `FIND_ENTRY()`.
 
 ▼ `FIND_ENTRY()`
 <pre class="longlist">
@@ -347,38 +351,38 @@ Next, let us examine `FIND_ENTRY()`.
 (st.c)
 </pre>
 
-`COLLISION` is a debug macro so we will (should) ignore it.
+`COLLISION` est une macro de débogguage, nous allons la laisser de coté.
 
-The parameters of `FIND_ENTRY()`, starting from the left are:
+Les paramètres de `FIND_ENTRY()` sont, en partant de la gauche :
 
 # `st_table`
-# the found entry will be pointed to by this parameter
-# hash value
-# temporary variable
+# l'entrée trouvée sera pointée par ce second paramètre
+# valeur de hachage
+# une variable temporaire
 
-And, the second parameter will point to the found `st_table_entry*`.
+Le second paramètre pointera vers la `st_table_entry*` trouvée.
 
-At the outermost level, a `do` .. `while(0)` is used to safely wrap up a
-multiple expression macro. This is `ruby`'s, or rather, C language's preprocessor
-idiom. In the case of `if(1)`, there may be a danger of adding an `else` part.
-In the case of `while(1)`, it becomes necessary to add a `break` at the very
-end.
+Au niveau le plus général, une boucle `do` ... `while(0)` est utilisée pour
+encadrer de façon sécurisée une expression macro multiple. C'est un idiome de
+`ruby`, ou plutôt du préprocesseur C. Quand on est dans le cas `if(1)`, l'ajout
+d'un `else` pourrait représenter un danger ; dans le cas d'un `while(1)`, il
+devient nécessaire d'ajouter un `break` à la toute fin.
 
-Also, there is no semicolon added after the `while(0)`.
+Notez qu'il n'y pas de point-virgule après le `while(0)`.
 
 <pre class="emlist">
 FIND_ENTRY();
 </pre>
 
-This is so that the semicolon that is normally written at the end of an
-expression will not go to waste.
+Cela permet de garder une cohérence au moment de l'utilisation de l'expression,
+avec un seul et unique point-virgule utile.
 
 h3. `st_add_direct()`
 
-Continuing on, let us examine `st_add_direct()` which is a function that adds a
-new relationship to the hash table. This function does not check if the key is
-already registered. It always adds a new entry. This is the meaning of `direct`
-in the function name.
+Nous en arrivons maintenant à `st_add_direct()`, qui est une fonction qui
+ajoute une nouvelle relation dans la table de hachage. Elle ne vérifie pas
+si la clé est déjà enregistrée ; elle ajoutera toujours une nouvelle entrée.
+D'où l'usage de `direct` dans le nom.
 
 ▼ `st_add_direct()`
 <pre class="longlist">
@@ -398,12 +402,12 @@ in the function name.
 (st.c)
 </pre>
 
-Just as before, the `do_hash()` macro that obtains a value is called here.
-After that, the next calculation is the same as at the start of
-`FIND_ENTRY()`, which is to exchange the hash value for a real index.
+Tout comme précédemment, on fait appel à la macro `do_hash()` qui obtient une
+valeur. Après quoi, le calcul est le même qu'au début de `FIND_ENTRY()`, calcul
+consistant à échanger la valeur de hachage par un index concret.
 
-Then the insertion operation seems to be implemented by `ADD_DIRECT()`.
-Since the name is all uppercase, we can anticipate that is a macro.
+L'opération d'insertion semble ensuite être implémentée par `ADD_DIRECT()`,
+l'usage des majuscules nous laissant présager qu'il s'agit d'une macro.
 
 ▼ `ADD_DIRECT()`
 <pre class="longlist">
@@ -431,23 +435,23 @@ Since the name is all uppercase, we can anticipate that is a macro.
 (st.c)
 </pre>
 
-The first `if` is an exception case so I will explain it afterwards.
+Le premier `if` est un cas d'exception, j'y reviendrai après.
 
-(A) Allocate and initialize a `st_table_entry`. 
+(A) Alloue et initialise une entrée `st_table_entry`. 
 
-(B) Insert the `entry` into the start of the list.
-This is the idiom for handling the list. In other words,
+(B) Insère l'entrée `entry` au début de la liste.
+C'est l'idiome servant à manipuler une liste. Ie. :
 
 <pre class="emlist">
 entry->next = list_beg;
 list_beg = entry;
 </pre>
 
-makes it possible to insert an entry to the front of the list. This is similar
-to "cons-ing" in the Lisp language. Check for yourself that even if `list_beg`
-is NULL, this code holds true.
+est ce qui rend possible l'insertion d'une entrée au début de la liste. C'est
+similaire au "cons-ing" du langage Lisp. vous pouvez vérifier que, même si
+`list_beg` est `NULL`, ce bout de code reste vrai.
 
-Now, let me explain the code I left aside.
+J'en viens maintenant au code que j'avais mis de coté.
 
 ▼ `ADD_DIRECT()`-`rehash`
 <pre class="longlist">
@@ -460,13 +464,15 @@ Now, let me explain the code I left aside.
 (st.c)
 </pre>
 
-`DENSITY` is "concentration". In other words, this conditional checks if the
-hash table is "crowded" or not. In the `st_table`, as the number of values that
-use the same `bin_pos` increases, the longer the link list becomes. In other
-words, search becomes slower. That is why for a given `bin` count, when the average elements
-per bin become too many, `bin` is increased and the crowding is reduced.
+`DENSITY` représente la « concentration. » En termes concrets, cette clause
+conditionnelle vérifie si la table est fortement « peuplée » ou non. Au sein
+de `st_table`, quand le nombre de valeurs utilisant le même `bin_pos` croît,
+il en va de même pour les listes, qui s'allongent. Tout cela rend la recherche
+plus lente. C'est pourquoi, étant donné un certain compteur `bin` donné, quand
+le nombre moyen d'éléments pa emplacement devient trop grand, `bin` devient
+plus grand et la facteur de densité du peupelement s'en trouve réduit.
 
-The current `ST_DEFAULT_MAX_DENSITY` is
+Le `ST_DEFAULT_MAX_DENSITY` de départ est
 
 ▼ `ST_DEFAULT_MAX_DENSITY`
 <pre class="longlist">
@@ -475,8 +481,8 @@ The current `ST_DEFAULT_MAX_DENSITY` is
 (st.c)
 </pre>
 
-Because of this setting, if in all `bin_pos` there are 5 `st_table_entries`,
-then the size will be increased.
+Du fait de ce réglage, si dans tous les `bin_pos` il y a cinq `st_table_entries`,
+la taille sera augmentée.
 
 h3. `st_insert()`
 
