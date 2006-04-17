@@ -584,7 +584,7 @@ raccourci, une syntaxe très courante.
 Cette fonction initialise également le drapeau de classification `ID`, elle
 est donc relativement longue. Je vais la simplifier.
 
-▼ `rb_id2name()` (simplified)
+▼ `rb_id2name()` (simplifiée)
 <pre class="longlist">
 char *
 rb_id2name(id)
@@ -602,11 +602,10 @@ Bon, elle semble peut-être simplifiée à l'extrême, mais il est vrai que si
 on en supprime les raffinements, elle est vraiment aussi simple.
 
 Le point sur lequel je veux insister est que le `name` trouvé n'est pas copié.
-L'API de `ruby` ne requière pas (en fait, il interdit même) la libération
-(NDT(Note du traducteur) : `free`) de la valeur de retour. Par ailleurs, quand
-les paramètres sont passés, ils sont toujours copiés. En d'autres termes, la
-création et la libération se fait globalement, d'un seul coté, soit celui de
-l'utilisateur, soit de `ruby`.
+L'API de `ruby` ne requière pas (en fait, interdit) la libération (NDT(Note du traducteur) : `free`)
+de la valeur de retour. Par ailleurs, quand les paramètres sont passés, ils
+sont toujours copiés. En d'autres termes, la création et la libération se fait
+globalement, d'un seul coté : soit celui de l'utilisateur, soit celui de `ruby`.
 
 Donc, par la suite, quand la création et la libération d'une valeur ne peuvent
 être accomplies (quand, une fois la valeur passée, rien n'est retourné), c'est

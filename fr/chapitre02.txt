@@ -148,7 +148,7 @@ La définition de `struct RBasic` est la suivante :
 (ruby.h)
 </pre>
 
-Les `flags` sont des drapeaux (Ndt(Note du traducteur) : "flags" en anglais)
+Les `flags` sont des drapeaux (NDT(Note du traducteur) : "flags" en anglais)
 à usages multiples, principalement utilisés pour enregistrer le type de la
 structure (par exemple `struct RObject`). Les drapeaux de type sont sommés
 d'après la convention `T_xxxx`, et peuvent être obtenus à partir d'un `VALUE`
@@ -481,7 +481,7 @@ nom (`ID`) des méthodes que cette classe possède et les entités de méthodes
 en elles-mêmes.
 
 Le quatrième membre `super` conserve, comme son nom l'indique la classe parente
-(Ndt(Note du traducteur) : _superclass_ en anglais). Comme c'est un `VALUE`,
+(NDT(Note du traducteur) : _superclass_ en anglais). Comme c'est un `VALUE`,
 il s'agit d'un pointeur vers l'objet classe de la classe parente.
 
 Cependant, j'ai déjà dit que toutes les méthodes d'`Object` sont définies dans
@@ -502,7 +502,7 @@ l'objet `Kernel` (figure 6).
 h3. Recherche de méthodes
 
 Avec une structure de classes telles que celle-la, vous pouvez facilement
-imaginer le processus d'appel à une méthode (Ndt(Note du traducteur) :
+imaginer le processus d'appel à une méthode (NDT(Note du traducteur) :
 _method call_ en anglais). Le membre `m_tbl` de la classe de l'objet est
 recherchée ; si la méthode n'est pas trouvée, la recherche s'effectue sur
 le membre `m_tbl` de `super`, et ainsi de suite. S'il n'y a plus de `super`,
@@ -643,7 +643,7 @@ pratique.
 (ruby.h)
 </pre>
 
-`iv_tbl` est la table de variable d'instance (Ndt(Note du traducteur) :
+`iv_tbl` est la table de variable d'instance (NDT(Note du traducteur) :
 _Instance Variable TaBLe_ en anglais). Elle conserver les noms des variables
 et les valeurs correspondantes.
 
@@ -742,7 +742,7 @@ Voyons comment cela se passe concrètement.
 
 `rb_special_const_p()` est vrai quand son argument n'est pas un pointeur. Mais
 comme cette partie dans le `if` nécessite des connaissances sur le ramasse-
-miette (Ndt(Note du traducteur) : _garbage collector_), nous allons la mettre
+miette (NDT(Note du traducteur) : _garbage collector_), nous allons la mettre
 de coté pour le moment. Je voudrais que vous y reveniez après avoir lu le
 chapitre 5, « Ramasse-miette. »
 
@@ -793,7 +793,7 @@ problème est intiment lié à la façon dont `ruby` gère les objets.
 Dans `ruby`, la mémoire utilisée par, mettons, une donnée « chaîne » (`char[]`)
 est directement allouée par `malloc()`. Cependant, les structures d'objets
 sont gérées d'une façon un peu particulière. `ruby` les alloue par groupes
-(Ndt(Note du traducteur) : _clusters_ en anglais), puis les distribue à partir
+(NDT(Note du traducteur) : _clusters_ en anglais), puis les distribue à partir
 de ces groupes. Comme la diversité des types (et des tailles) de structures
 rend compliquée leur manipulation au moment de l'allocation, un type (`union`)
 combinant toutes les structures `RVALUE` a été déclaré, et c'est un tableau
@@ -944,7 +944,7 @@ ces arguments étant à liés au quatrième membre `aux`. Mais avant d'expliquer
 en détails l'utilisation de `aux`, quelques précisions sur les caractéristiques
 des chaînes en Ruby sont nécessaires.
 
-Les chaînes Ruby peuvent être modifiables (Ndt(Note du traducteur) : _mutable_
+Les chaînes Ruby peuvent être modifiables (NDT(Note du traducteur) : _mutable_
 en anglais). Par modifiables, j'entends le fait qu'après le code suivant :
 
 <pre class="emlist">
@@ -1124,7 +1124,7 @@ dans le prochain chapitre, « Noms et table de nommage. »
 h3. `struct RFile`
 
 `struct RFile` est la structure des instances de la classe standard IO
-(Ndt(Note du traducteur) : _Input/Output_, classe d'entrées/sortie) et de
+(NDT(Note du traducteur) : _Input/Output_, classe d'entrées/sortie) et de
 ses sous-classes.
 
 ▼ `struct RFile`
@@ -1184,7 +1184,7 @@ a été créée coté `ruby`. `RData` est cette structure.
 `data` est un pointeur vers la structure définie par l'utilisateur ;
 `dfree` est la fonction pour libérer cette structure ;
 `dmark` est la fonction relative au « marquage » de l'algorithme de marquage
-et nettoyage (Ndt(Note du traducteur) : _mark and sweep_ en anglais), lorsque
+et nettoyage (NDT(Note du traducteur) : _mark and sweep_ en anglais), lorsque
 celui-la advient.
 
 Expliquer `struct RData` est, pour le moment encore, trop compliqué, aussi
