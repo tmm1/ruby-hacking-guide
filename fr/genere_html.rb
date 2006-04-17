@@ -10,7 +10,7 @@ require 'rhg_html_gen'
 FOOTER = <<EOS
 <hr>
 
-L'oeuvre originale est Copyright &copy; 2002 - 2004 Minero AOKI.<br>
+L'oeuvre originale est sous Copyright &copy; 2002 - 2004 Minero AOKI.<br>
 Traduction $tag(translated by)$<br>
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/"><img alt="Creative Commons License" border="0" src="images/somerights20.fr.png"/></a><br/>Cette oeuvre est sous la <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/deed.fr">Licence Creative Commons Attribution-NonCommercial-ShareAlike2.5</a>.
 

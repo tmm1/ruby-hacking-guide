@@ -7,12 +7,12 @@ h2. Structure des objets en Ruby
 
 h3. Conseils
 
-À partir de ce chapitre, nous allons explorer le code source de `ruby`, en commençant
-par l'étude de la déclaration de la structure des objets.
+À partir de ce chapitre, nous allons explorer le code source de `ruby`, en
+commençant par l'étude de la déclaration de la structure des objets.
 
 Quelles sont les conditions nécessaires pour assurer l'existence d'objets ?
-Il existe plusieurs pistes de réponses potentielles, mais en réalité trois conditions
-sont à respecter :
+Il existe plusieurs pistes de réponses potentielles, mais en réalité trois
+conditions sont à respecter :
 
 # être capable de se différencier de l'extérieur (avoir une identité propre)
 # être capable de répondre à des requêtes (méthodes)
@@ -22,8 +22,8 @@ Dans ce chapitre, nous allons vérifier la validité de ces trois fonctionnalit�
 l'une après l'autre.
 
 Le fichier le plus intéressant dans cette optique sera `ruby.h`, mais nous
-jeterons également un œil à d'autres fichiers, comme `object.c`, `class.c` ou
-encore `variable.c`.
+jeterons également un œil à d'autres fichiers, comme `object.c`, `class.c`
+ou encore `variable.c`.
 
 h3. Structure de `VALUE` et des objets
 
@@ -116,9 +116,9 @@ RARRAY(arr)->len;    /* ((struct RArray*)arr)->len */
 
 Tout d'abord, `VALUE` étant défini comme `unsigned long`, il doit être casté
 avant d'être utilisé. C'est pourquoi des macros `Rxxxx()` existent pour chaque
-structures d'objet. Par exemple, pour la structure `struct RString`, il y a une
-macro `RSTRING()` ; pour `struct RArray`, il y a `RARRAY()`, etc. Ces macros sont
-utilisées de la manière suivante :
+structures d'objet. Par exemple, pour la structure `struct RString`, il y a
+une macro `RSTRING()` ; pour `struct RArray`, il y a `RARRAY()`, etc. Ces
+macros sont utilisées de la manière suivante :
 
 <pre class="emlist">
 VALUE str = ....;
@@ -127,10 +127,10 @@ RSTRING(str)->len;   /* ((struct RString*)str)->len */
 RARRAY(arr)->len;    /* ((struct RArray*)arr)->len */
 </pre>
 
-Un autre point important à mentionner est que toutes les structures d'objets ont
-pour premier membre `basic`, de type `struct RBasic` — de sorte que, quel que soit
-le type de la structure pointée par `VALUE`, vous pourrez accéder au contenu de
-`basic` en castant ce `VALUE` avec `struct RBasic*`.
+Un autre point important à mentionner est que toutes les structures d'objets
+ont pour premier membre `basic`, de type `struct RBasic` — de sorte que, quel
+que soit le type de la structure pointée par `VALUE`, vous pourrez accéder au
+contenu de `basic` en castant ce `VALUE` avec `struct RBasic*`.
 
 !images/ch_objet_rbasic.png(`struct RBasic`)!
 
@@ -148,8 +148,8 @@ La définition de `struct RBasic` est la suivante :
 (ruby.h)
 </pre>
 
-Les `flags` sont des drapeaux (Ndt(Note du traducteur) : "flags" en anglais) à
-usages multiples, principalement utilisés pour enregistrer le type de la
+Les `flags` sont des drapeaux (Ndt(Note du traducteur) : "flags" en anglais)
+à usages multiples, principalement utilisés pour enregistrer le type de la
 structure (par exemple `struct RObject`). Les drapeaux de type sont sommés
 d'après la convention `T_xxxx`, et peuvent être obtenus à partir d'un `VALUE`
 en utilisant la macro `TYPE()`. Voici un exemple :
@@ -161,8 +161,8 @@ TYPE(str);             /* la valeur de retour est T_STRING */
 </pre>
 
 Les noms de ces drapeaux `T_xxxx` ont une correspondance directe avec les noms
-des types qui y sont liés, comme les couples `T_STRING` et `struct RString` ou
-`T_ARRAY` et `struct RArray` le montrent.
+des types qui y sont liés, comme les couples `T_STRING` et `struct RString`
+ou `T_ARRAY` et `struct RArray` le montrent.
 
 L'autre membre de `struct RBasic`, `klass`, contient la classe auquel l'objet
 appartient. Comme `klass` est de type `VALUE`, c'est un (pointeur vers un) objet
@@ -184,10 +184,10 @@ J'ai dit que le type de structure est stocké dans le membre `flags` de `struct
 Basic`. Mais pourquoi avons nous besoin de stocker le type de structure ? La
 raison en est que cela nous permet de prendre en charge tous les types différents
 de structures _via_ `VALUE`. Si vous castez un pointeur vers une structure avec
-`VALUE`, comme l'information sur le type disparaît, le compilateur ne pourra plus
-vous aider. C'est pourquoi nous devons nous-mêmes gérer le type. C'est la
-contrepartie directe du fait de pouvoir gérer tous les types de structure de la
-même manière.
+`VALUE`, comme l'information sur le type disparaît, le compilateur ne pourra
+plus vous aider. C'est pourquoi nous devons nous-mêmes gérer le type. C'est la
+contrepartie directe du fait de pouvoir gérer tous les types de structure d'une
+unique façon.
 
 D'accord, mais la structure utilisée est définie par la classe ; pourquoi
 alors le type de structure et la classe sont stockés séparement ? Être en
@@ -206,8 +206,8 @@ d'une seule façon.
 La seconde raison est qu'il n'y pas de correspondance unique entre classe et
 structure. Par exemple, toutes les instances de classes définies au niveau de
 Ruby utilisent `struct RObject` ; retrouver une structure à partir d'une classe
-nécessiterait de garder la correspondance entre toutes les classes et toutes les
-structures. C'est pourquoi il est plus simple et rapide de mettre cette
+nécessiterait de garder la correspondance entre toutes les classes et toutes
+les structures. C'est pourquoi il est plus simple et rapide de mettre cette
 information à propos du type dans la structure.
 
 h4. L'utilisation de `basic.flags`
@@ -222,16 +222,17 @@ pour aller mieux.
 
 D'après le diagramme, il semble que vingt-et-un (21) bits restent inutilisés
 sur une machine 32 bits. Sur ces bits supplémentaires sont définis les drapeaux
-`FL_USER0` à `FL_USER8`, lesquels sont utilisés dans plusieurs buts, selon les
-structures. J'ai également ajouté `FL_USER0` (`FL_SINGLETON`) comme exemple sur
-le diagramme.
+`FL_USER0` à `FL_USER8`, lesquels sont utilisés dans plusieurs buts, selon
+les structures. J'ai par ailleurs ajouté `FL_USER0` (`FL_SINGLETON`) comme
+exemple sur le diagramme.
 
 h3. Objets contenus dans `VALUE`
 
 Comme je l'ai dit, `VALUE` est un `unsigned long`. Comme `VALUE` est un pointeur,
-il semble que `void*` aurait très bien pu faire l'affaire également, mais il y a
-une bonne raison de ne pas l'avoir choisi. En fait, `VALUE` peut très bien ne pas
-être un pointeur. Les six cas où `VALUE` n'est pas un pointeur sont les suivants :
+il semble que `void*` aurait très bien pu faire l'affaire également, mais il
+y a une bonne raison de ne pas l'avoir choisi. En fait, `VALUE` peut très bien
+ne pas être un pointeur. Les six cas où `VALUE` n'est pas un pointeur sont les
+suivants :
 
 # petits entiers
 # symboles
@@ -245,8 +246,8 @@ Je vais les expliquer chacun à leur tour.
 h4. Petits entiers
 
 Comme en Ruby toute donnée est un objet, les entiers sont également des objets.
-Cependant, il y a de très nombreuses instances d'entiers, aussi les exprimer à
-travers des structures risquerait de ralentir excessivement l'exécution. Par
+Cependant, il y a de très nombreuses instances d'entiers, aussi les exprimer
+à travers des structures risquerait de ralentir excessivement l'exécution. Par
 exemple, réaliser une incrémentation de 0 à 50 000 nécessiterait de créer
 50 000 objets, ce qui nous laisserait pour le moins dubitatifs.
 
@@ -293,8 +294,8 @@ h4. Symboles
 Que sont les symboles ?
 
 Donner une réponse à cette question ne se fait pas sans difficulté ; commençons
-par donner les raisons pour lesquelles les symboles sont nécessaires. Tout d'abord,
-regardons le type `ID` utilisé au sein de `ruby`. Voici sa définition :
+par donner les raisons pour lesquelles les symboles sont nécessaires. Tout
+d'abord, regardons le type `ID` utilisé au sein de `ruby`. Voici sa définition :
 
 ▼ `ID`
 <pre class="longlist">
@@ -303,28 +304,29 @@ regardons le type `ID` utilisé au sein de `ruby`. Voici sa définition :
 (ruby.h)
 </pre>
 
-Cet `ID` est un nombre qui a une relation exclusive avec une chaîne. Dans le monde
-réel il n'est pas possible d'avoir une association entre toutes les chaînes et une
-valeur numérique, c'est pourquoi ils sont limités à une relation 1-à-1 dans un
-processus `ruby`. Je parlerai de la méthode pour trouver un `ID` dans le prochain
-chapitre, « Noms et tables de nommage. »
+Cet `ID` est un nombre qui a une relation exclusive avec une chaîne. Dans le
+monde réel il n'est pas possible d'avoir une association entre toutes les
+chaînes et une valeur numérique, c'est pourquoi ils sont limités à une relation
+1-à-1 dans un processus `ruby`. Je parlerai de la méthode pour trouver un `ID`
+dans le prochain chapitre, « Noms et tables de nommage. »
 
-Dans les implémentations de langages, il y a beaucoup de noms à gérer. Noms de
-méthodes ou de variables, noms de constantes, noms de fichiers dans des noms de
-classes... Il est difficile de tous les prendre en charge en tant que chaînes
-(`char*`), parce que cela nécessite encore et toujours plus de gestion mémoire.
-Par ailleurs, de nombreuses comparaisons seront certainement requises, et comparer
-des chaînes caractère par caractère sera un frein à l'exécution. C'est pourquoi les
-chaînes ne sont pas gérées directement et que quelque chose leur sera associé et
-utilisé à la place. Et généralement, ce « quelque chose » sera des nombres, la
-chose la plus simple à manipuler.
+Dans les implémentations de langages, il y a beaucoup de noms à gérer. Noms
+de méthodes ou de variables, noms de constantes, noms de fichiers dans des
+noms de classes... Il est difficile de tous les prendre en charge en tant que
+chaînes (`char*`), parce que cela nécessite encore et toujours plus de gestion
+mémoire. Par ailleurs, de nombreuses comparaisons seront certainement requises,
+et comparerdes chaînes caractère par caractère sera un frein à l'exécution.
+C'est pourquoi les chaînes ne sont pas gérées directement et que quelque chose
+leur sera associé et utilisé à la place. Et généralement, ce « quelque chose »
+sera des nombres, la chose la plus simple à manipuler.
 
 Ces `ID` se retrouvent en tant que symboles dans le monde de Ruby. Jusqu'à
-`ruby 1.4`, les valeurs de ces `ID` étaient converties en `Fixnum`, mais utilisées
-comme symboles — encore aujourd'hui, ces valeurs peuvent être obtenus en utilisant
-`Symbol#to_i`. Cependant, l'utilisation concrète s'étant terminée en carambolages,
-on a prit conscience du fait que mêler `Fixnum` et `Symbol` n'était pas une bonne
-idée. Depuis la version 1.6 existe une classe `Symbol` indépendante.
+`ruby 1.4`, les valeurs de ces `ID` étaient converties en `Fixnum`, mais
+utilisées comme symboles — encore aujourd'hui, ces valeurs peuvent être obtenus
+en utilisant `Symbol#to_i`. Cependant, l'utilisation concrète s'étant terminée
+en carambolages, on a prit conscience du fait que mêler `Fixnum` et `Symbol`
+n'était pas une bonne idée. Depuis la version 1.6 existe une classe `Symbol`
+indépendante.
 
 Les objets `Symbol` sont largement utilisés, notamment comme clés pour les
 tables de hachage. C'est la raison pour laquelle `Symbol`, tout comme `Fixnum`,
@@ -340,11 +342,11 @@ macro `ID2SYM()` qui convertit un `ID` en objet `Symbol`.
 </pre>
 
 Lorsqu'on fait un décalage de huit bits à gauche, `x` devient un multiple de
-256, donc de 4. Ensuite, après une comparaison par un OU inclusif bit à bit (ce
-qui revient ici à une addition) avec `0x0e` (14 en décimal), le `VALUE`
-exprimant le symbole n'est plus multiple de 4. Ni même un nombre impair. Il ne
-recouvre donc plus l'intervalle d'aucun autre `VALUE` — c'est un petit tour
-assez malicieux.
+256, donc de 4. Ensuite, après une comparaison par un OU inclusif bit à bit
+(ce qui revient ici à une addition) avec `0x0e` (14 en décimal), le `VALUE`
+exprimant le symbole n'est plus multiple de 4. Ni même un nombre impair. Il
+ne recouvre donc plus l'intervalle d'aucun autre `VALUE` — c'est une petite
+astuce assez malicieuse.
 
 Finalement, voyons la macro de conversion inverse à `ID2SYM()`, `SYM2ID()`.
 
@@ -406,8 +408,8 @@ que l'argument est `nil` ? » Il semble que la lettre `p` provienne du verbe
 endroits dans `ruby`.
 
 De plus, en Ruby, `false` et `nil` sont faux et tous les autres objets vrais.
-Par contre, en C, `nil` (`Qnil`) est vrai. C'est pourquoi en C a été créée une
-macro dans le style Ruby, `RTEST()`.
+Par contre, en C, `nil` (`Qnil`) est vrai. C'est pourquoi en C a été créée
+une macro dans le style Ruby, `RTEST()`.
 
 ▼ `RTEST()`
 <pre class="longlist">
@@ -425,8 +427,8 @@ satisfaire aux conditions de la librairie glib qui ne veut que 0 ou 1
 ("[ruby-dev:11049]":http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-dev/11049).
 
 Question évident, que signifie le `Q` dans `Qnil` ? `R` aurait été logique, mais
-pourquoi `Q` ? Lorsque j'ai demandé, la réponse a été « parce que c'était comme ça
-dans Emacs. » Pas vraiment l'explication amusante que j'attendais...
+pourquoi `Q` ? Lorsque j'ai demandé, la réponse a été « parce que c'était comme
+ça dans Emacs. » Pas vraiment l'explication amusante que j'attendais...
 
 h4. `Qundef`
 
@@ -454,8 +456,8 @@ Il doit donc y avoir une structure pour les objets classe. Cette structure est
 `struct RClass`. Son drapeau de type de structure est `T_CLASS`.
 
 Comme les classes et les modules sont très semblables, il n'est pas nécessaire
-de différencier leur contenu. C'est pourquoi les modules utilisent également la
-structure `struct RClass`, et se distinguent par leur drapeau de structure
+de différencier leur contenu. C'est pourquoi les modules utilisent également
+la structure `struct RClass`, et se distinguent par leur drapeau de structure
 `T_MODULE`.
 
 ▼ `struct RClass`
@@ -475,12 +477,12 @@ table de hachage utilisée un peu partout dans `ruby`. Ses raffinements seront
 présentés dans le prochain chapitre « Noms et tables de nommage » mais, pour
 faire simple, il s'agit d'une table qui établit la correspondance entre noms
 et objets. Dans le cas de `m_tbl`, elle conserve la correspondance entre le
-nom (`ID`) des méthodes que cette classe possède et les entités de méthodes en
-elles-mêmes.
+nom (`ID`) des méthodes que cette classe possède et les entités de méthodes
+en elles-mêmes.
 
 Le quatrième membre `super` conserve, comme son nom l'indique la classe parente
-(Ndt(Note du traducteur) : _superclass_ en anglais). Comme c'est un `VALUE`, il
-s'agit d'un pointeur vers l'objet classe de la classe parente.
+(Ndt(Note du traducteur) : _superclass_ en anglais). Comme c'est un `VALUE`,
+il s'agit d'un pointeur vers l'objet classe de la classe parente.
 
 Cependant, j'ai déjà dit que toutes les méthodes d'`Object` sont définies dans
 le module `Kernel`, et qu'`Object` ne fait que l'inclure. Comme les modules
@@ -966,11 +968,11 @@ C'est la raison pour laquelle la mémoire pointée par `ptr` est allouée avec
 une taille légèrement plus importante que `len`. À cause de cela, si la partie
 ajoutée à la chaîne peut tenir dans l'espace mémoire libre, aucun `realloc()`
 n'est nécessaire, ce qui augmente d'autant la rapidité d'exécution. Le membre
-de la structure `aux.capa` contient la longueur totale, place additionnelle en
-mémoire comprise.
+de la structure `aux.capa` contient la longueur totale, place additionnelle
+en mémoire comprise.
 
-Qu'est-ce que représente l'autre membre `aux.shared` ? Il sert à accélérer la
-création de chaînes littérales. Considérez le programme Ruby suivant :
+Qu'est-ce que représente l'autre membre `aux.shared` ? Il sert à accélérer
+la création de chaînes littérales. Considérez le programme Ruby suivant :
 
 <pre class="emlist">
 while true do  # répéter indéfiniement
@@ -981,9 +983,9 @@ end
 </pre>
 
 Quel que soit le nombre de fois que vous répèterez cette boucle, la quatrième
-ligne `p` doit afficher « `string`. » En définitive, le code `"str"` devra créer,
-à chaque fois, une chaîne contenant un `char[]` différent. Si bien que, si
-un grand nombre de chaîne sont similaires par leur contenu, de nombreuses
+ligne `p` doit afficher « `string`. » En définitive, le code `"str"` devra
+créer, à chaque fois, une chaîne contenant un `char[]` différent. Si bien que,
+si un grand nombre de chaîne sont similaires par leur contenu, de nombreuses
 copies inutiles de `char[]` seront créer à maintes reprises. Il serait plus
 judicieux de partager un seul et même `char[]`.
 
