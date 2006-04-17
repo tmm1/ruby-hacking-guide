@@ -486,8 +486,9 @@ la taille sera augmentée.
 
 h3. `st_insert()`
 
-`st_insert()` is nothing more than a combination of `st_add_direct()` and
-`st_lookup()`, so if you understand those two, this will be easy.
+`st_insert()` n'est rien de plus qu'une combinaison de `st_add_direct()` et
+`st_lookup()`, aussi si vous comprenez ces deux fonctions, tout sera on ne
+peut plus clair.
 
 ▼ `st_insert()`
 <pre class="longlist">
@@ -516,25 +517,25 @@ h3. `st_insert()`
 (st.c)
 </pre>
 
-It checks if the element is already registered in the table. Only when it is
-not registered will it be added. If there is a insertion, return 0. If there is
-no insertion, return a 1.
+La fonction vérifie si l'élément est déjà présent dans la table. Il ne sera
+ajouté que si ce n'est pas le cas. S'il y a effectivement insertion, la valeur
+de retour sera 0 ; sinon, 1.
 
-h2. `ID` and Symbols
+h2. `ID` et Symboles
 
-I've already discussed what an `ID` is. It is a correspondence between an
-arbitrary string of characters and a value. It is used to declare various
-names. The actual data type is `unsigned int`.
+J'ai déjà expliqué ce qu'était un `ID`. C'est une correspondance entre une
+chaîne de caractères arbitraire et une valeur. On l'utilise pour déclarer
+différents noms, et le type de données sous-jacent est `unsigned int`.
 
-h3. From `char*` to `ID`
+h3. De `char*` à `ID`
 
-The conversion from string to `ID` is executed by `rb_intern()`. This function
-is rather long, so let's omit the middle.
+La conversion d'une chaîne en `ID` est réalisée par `rb_intern()`. Cette
+fonction est plutôt longue, aussi va t-on en omettre la partie centrale.
 
-▼ `rb_intern()` (simplified)
+▼ `rb_intern()` (simplifiée)
 <pre class="longlist">
-5451  static st_table *sym_tbl;       /*  char* to ID   */
-5452  static st_table *sym_rev_tbl;   /*  ID to char*   */
+5451  static st_table *sym_tbl;       /*  char* en ID   */
+5452  static st_table *sym_rev_tbl;   /*  ID en char*   */
 
 5469  ID
 5470  rb_intern(name)
@@ -544,14 +545,13 @@ is rather long, so let's omit the middle.
 5474      ID id;
 5475      int last;
 5476
-          /* If for a name, there is a corresponding ID that is already
-          registered, then return that ID */
+          /* S'il y a déjà un ID correspondant au nom, le retourner */
 5477      if (st_lookup(sym_tbl, name, &id))
 5478          return id;
 
-          /* omitted ... create a new ID */
+          /* partie omise ... crée un nouvel ID */
 
-          /* register the name and ID relation */
+          /* enregistre le nom et l'ID correspondant */
 5538    id_regist:
 5539      name = strdup(name);
 5540      st_add_direct(sym_tbl, name, id);
@@ -562,24 +562,27 @@ is rather long, so let's omit the middle.
 (parse.y)
 </pre>
 
-The string and `ID` correspondence relationship can be accomplished by using the
-`st_table`. There probably isn't any especially difficult part here.
+La relation de correspondance entre la chaîne et l'`ID` peut être sauvegardée
+dans une table `st_table`. Il n'y a _a priori_ aucune difficulté particulière
+ici.
 
-What is the omitted section doing? It is treating global variable names and
-instance variables names as special and flagging them. This is because in the
-parser, it is necessary to know the variable's classification from the `ID`.
-However, the fundamental part of `ID` is unrelated to this, so I won't explain
-it here.
+Que fait la section cachée ? Elle traite les noms de variables de globales et
+de variables d'instances d'une façon spéciale et les marque d'un drapeau. La
+raison en est que, au sein du parseur, il est nécessaire de connaître à partir
+de l'`ID` la classification de la variable traitée. Cependant, la principale
+partie de `ID` n'est pas liée à tout cela, aussi ne vais-je pas l'expliquer
+ici.
 
-h3. From `ID` to `char*`
+h3. De `ID` vers `char*`
 
-The reverse of `rb_intern()` is `rb_id2name()`, which takes an `ID` and
-generates a `char*`. You probably know this, but the 2 in `id2name` is "to".
-"To" and "two" have the same pronounciation, so "2" is used for "to". This
-syntax is often seen.
+Le méchanisme inverse de `rb_intern()` est assuré par `rb_id2name()`, une
+fonction qui prend en argument un `ID` et génère un `char*`. Vous le savez
+certainemetn déjà, mais le 2 dans `id2name` signifie "_to_" (NDT(Note du traducteur) : vers).
+"_To_" et "_two_" ayant la même prononciation, le chiffre est utilisé comme
+raccourci, une syntaxe très courante.
 
-This function also sets the `ID` classification flags so it is long. Let me
-simplify it.
+Cette fonction initialise également le drapeau de classification `ID`, elle
+est donc relativement longue. Je vais la simplifier.
 
 ▼ `rb_id2name()` (simplified)
 <pre class="longlist">
@@ -595,25 +598,27 @@ rb_id2name(id)
 }
 </pre>
 
-Maybe it seems that it is a little over-simplified, but in reality if we remove
-the details it really becomes this simple.
+Bon, elle semble peut-être simplifiée à l'extrême, mais il est vrai que si
+on en supprime les raffinements, elle est vraiment aussi simple.
 
-The point I want to emphasize is that the found `name` is not copied. The
-`ruby` API does not require (or rather, it forbids) the `free()`-ing of the
-return value. Also, when parameters are passed, it always
-copies them. In other words, the creation and release is
-completed by one side, either by the user or by `ruby`.
+Le point sur lequel je veux insister est que le `name` trouvé n'est pas copié.
+L'API de `ruby` ne requière pas (en fait, il interdit même) la libération
+(NDT(Note du traducteur) : `free`) de la valeur de retour. Par ailleurs, quand
+les paramètres sont passés, ils sont toujours copiés. En d'autres termes, la
+création et la libération se fait globalement, d'un seul coté, soit celui de
+l'utilisateur, soit de `ruby`.
 
-So then, when creation and release cannot be accomplished (when passed it is
-not returned) on a value, then a Ruby object is used. I have not yet discussed
-it, but a Ruby object is automatically released when it is no longer needed,
-even if we are not taking care of the object.
+Donc, par la suite, quand la création et la libération d'une valeur ne peuvent
+être accomplies (quand, une fois la valeur passée, rien n'est retourné), c'est
+un objet Ruby qui est utilisé. Je n'ai pas encore abordé ça, mais un objet Ruby
+est libérer automatiquement une fois qu'il est devenu inutile, même si on ne
+fait rien de spécial pour le gérer.
 
-h3. Converting `VALUE` and `ID`
+h3. Conversion de `VALUE` et `ID`
 
-`ID` is shown as an instance of the `Symbol` class at the Ruby level.
-And it can be obtained like so: `"string".intern`. The implementation of
-`String#intern` is `rb_str_intern()`.
+`ID` est exposé comme une instance de la classe `Symbol` au niveau de Ruby.
+On peut d'ailleurs l'obtenir comme ceci : `"string".intern`. L'implémentation
+de `String#intern` est `rb_str_intern()`.
 
 ▼ `rb_str_intern()`
 <pre class="longlist">
@@ -635,16 +640,18 @@ And it can be obtained like so: `"string".intern`. The implementation of
 (string.c)
 </pre>
 
-This function is quite reasonable as a `ruby` class library code example.
-Please pay attention to the part where `RSTRING()` is used and casted, and
-where the data structure's member is accessed.
+Cette fonction est somme toute très raisonnable comme exemple de code d'une
+classe d'une librairie de `ruby`. Concentrez s'il-vous-plaît votre attention
+sur à la partie où `RSTRING()` est utilisé et casté, et dans laquelle on accède
+au membre de la structure de données.
 
-Let's read the code. First, `rb_raise()` is merely error handling so we ignore
-it for now. The `rb_intern()` we previously examined is here, and also ID2SYM
-is here. `ID2SYM()` is a macro that converts `ID` to `Symbol`. 
+Lisons le code. Tout d'abord, `rb_raise()`, qui est simplement là pour gérer
+les erreurs ; ignorons-le. Le `rb_intern()` que nous avons examiné plus tôt
+est présent, et également ID2SYM. Pour rappel, `ID2SYM()` est une macro qui
+convertit un `ID` en `Symbol`.
 
-And the reverse operation is accomplished using `Symbol#to_s` and such.
-The implementation is in `sym_to_s`.
+L'opération inverse est accomplie par `Symbol#to_s` ; son implémentation est
+`sym_to_s`.
 
 ▼ `sym_to_s()`
 <pre class="longlist">
@@ -658,11 +665,12 @@ The implementation is in `sym_to_s`.
 (object.c)
 </pre>
 
-`SYM2ID()` is the macro that converts `Symbol` (`VALUE`) to an `ID`.
+`SYM2ID()` est la macro qui convertit un `Symbol` (`VALUE`) en `ID`.
 
-It looks like the function is not doing anything unreasonable. However, it
-is probably necessary to pay attention to the area around the memory handling.
-`rb_id2name()` returns a `char*` that must not be `free()`. `rb_str_new2()`
-copies the parameter's `char*` and uses the copy (and does not change the
-parameter). In this way the policy is consistent, which allows the line to be
-written just by chaining the functions.
+Il semble bien que la fonction ne fait rien de déraisonnable. Toutefois, il
+n'est pas inutile de faire attention à la partie autour de la gestion mémoire.
+`rb_id2name()` retourne un `char*` qui ne doit pas être libéré par `free()`.
+`rb_str_new2()` copie le `char*` du paramètre et utilise la copie (si bien
+que la paramètre original n'est pas modifié). De cette façon, notre politique
+de gestion mémoire reste cohérente, ce qui nous autorise à écrire une seule
+ligne consistant en le chaînage des fonctions.
