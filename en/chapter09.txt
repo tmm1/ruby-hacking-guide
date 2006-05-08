@@ -429,8 +429,8 @@ list: ITEM         /* rule 1 */
     | list ITEM    /* rule 2 */
 </pre>
 
-これは一個以上の`ITEM`を並べたリストを表現している。
-つまり以下の記号列のいずれかを示す。
+This expresses a list of one or more items, in other words any of the
+following lists of symbols:
 
 <pre class="emlist">
 ITEM
@@ -440,62 +440,65 @@ ITEM ITEM ITEM ITEM
       :
 </pre>
 
-どうしてかわかるだろうか。まず規則1により
-`list`は`ITEM`と読み換えることができる。
-すると今度は規則2から`list`は`ITEM ITEM`だと言えるようになる。
+Do you understand why? First, according to rule 1 `list` can be read
+`ITEM`. If you merge this with rule 2, `list` can be `ITEM ITEM`.
 
 <pre class="emlist">
 list: list ITEM
     = ITEM ITEM
 </pre>
 
-これで`ITEM ITEM`という記号列も`list`と等しいとわかる。
-これをまたさらに規則2の`list`にあてはめれば`ITEM`三つも`list`に等しいと言え……
-これをどんどん続ければ`ITEM`をいくらでも増やしていける。
-数学的帰納法みたいなものだ。
+We now understand that the list of symbols `ITEM ITEM` is similar to
+`list`. By applying again rule 2 to `list`, we can say that 3 `ITEM`
+are also similar to `list`. By quickly continuing this process, the
+list can grow to any size.
 
-次の例を示す。以下は`ITEM`をゼロ個以上並べたリストを表す。
+I'll now show you the next example. The following example expresses
+the lists with 0 or more `ITEM`.
 
 <pre class="emlist">
 list:
     | list ITEM
 </pre>
 
-まず一行目は「`list`は(無)と等しい」という意味である。
-無とは即ち`ITEM`ゼロ個のリストである。
-次に二つめの規則を見ると、「`list ITEM`」は`ITEM`一個と等しいと言える。
-なぜなら`list`は無と等しいからだ。
+First the first line means "`list` is equivalent to (void)". By void I
+mean the list with 0 `ITEM`. Then, by looking at rule 2 we can say
+that "`list ITEM`" is equivalent to 1 `ITEM`. That's because `list` is
+equivalent to void.
 
 <pre class="emlist">
-list: list ITEM
-    =(無)ITEM
-    =      ITEM
+list: list   ITEM
+    = (void) ITEM
+    =        ITEM
 </pre>
 
-先程と同じようにこの置き換え作業を何度も続ければ、`list`はゼロ個以上
-の`ITEM`のリストの表現であるとわかる。
+By applying the same operations of replacement multiple times, we can
+understand that `list` is the expression a list of 0 or more items.
 
-この知識を応用すれば「`ITEM`が二個以上のリスト」とか「`ITEM`が三個以上のリスト」
-は簡単だし、「`ITEM`が偶数個のリスト」なんてものも作れる。
+With this knowledge, "lists of 2 or more `ITEM`" or "lists of 3 or
+more `ITEM`" are easy, and we can even create "lists or an even number
+of elements".
 
 <pre class="emlist">
 list:
     | list ITEM ITEM
 </pre>
 
-h2. 値の構築
+h2. Construction of values
 
-抽象的な話が続いたのでこの節は思いきり物理的に話を進めたいと思う。
+This abstract talk lasted long enough so in this section I'd really
+like to go on with a more concrete talk.
 
-h3. シフトと還元
+h3. Shift and reduce
 
-ここまででは文法の書きかたをいろいろ説明してきたが、我々がやりたいのは
-あくまで構文木を作ることだ。しかし残念ながら規則を伝えるだけで構文木ま
-で作ってくれるわけでは、さすがにない。そこで今度は規則にプラスアルファ
-して構文木を作る方法を教えよう。
+For the moment we have only seen how to write grammars, but what we
+want is being able to build the full syntax tree. However, I'm afraid
+to say that has can be expected there's no way to build the syntax
+tree with just expressing the rules. That's why this time we'll go a
+little farther and I'll explain how to build the syntax tree.
 
-まずパーサが現実に実行時にやることを説明する。
-次のような単純な文法を例に取ろう。
+We'll first see what the parser does during the execution. We'll use
+the following simple grammar as an example.
 
 <pre class="emlist">
 %token A B C
@@ -503,22 +506,26 @@ h3. シフトと還元
 program: A B C
 </pre>
 
-パーサの中にはセマンティックスタック(semantic stack)と呼ばれるスタッ
-クが一つある。そしてこれにスキャナから来る記号をどんどんプッシュしてい
-く。この動作のことを指して「記号をシフト(shift)する」と言う。
+In the parser there is a stack called the semantic stack. The parser
+pushes on it all the symbols coming from the scanner. This move is
+called "shifting the symbols".
 
 <pre class="emlist">
-[ A B ] ← C   シフト
+[ A B ] ← C   shift
 </pre>
 
-そして文法のいずれかの右辺にある並びがスタックの先端に揃うと、
-これを「理解」する。「理解」すると右辺の並びが左辺の記号に変わる。
+And when any of the right side of a rule is equal to the end of the
+end, this is called ???understanding???. When this happens, the right
+side of the rule is replaced by the left side on the stack.
 
 <pre class="emlist">
 [ A B C ]
-    ↓         還元
+    ↓         reduction
 [ program ]
 </pre>
+
+This move is called "a reduction of `A B C`" to `program`". This term
+is a little presomptious
 
 この動作を「`A B C`を`program`に還元(reduce)する」と言う。
 言葉は偉そうだがようするに白發中が揃うと大三元になるようなものだ。
