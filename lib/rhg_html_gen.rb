@@ -99,7 +99,7 @@ def generate_html htmlfile, txtfile
   if md = TranslatedByRE.match(r)
     $tags['translated by'] = md[1]
     r.sub!(TranslatedByRE, '')
-  else
+  elsif not $tags['translated by']
     STDERR.puts "error: no translator defined in file #{txtfile}"
     return
   end
