@@ -1,4 +1,4 @@
-﻿$comment(-*- coding: utf-8 -*- vim:set encoding=utf-8:)$ 
+$comment(-*- coding: utf-8 -*- vim:set encoding=utf-8:)$ 
 Translated by Robert GRAVINA
 
 h1. Chapter 10: Parser
@@ -159,8 +159,9 @@ kind of hierarchy of symbols such as `program`→`stmt`→`expr`→`primary`.
 
 It is often the case that symbol types lower in this heirarchy can be promoted 
 to higher levels and vice versa. For example, in C function calls are expressions 
-yet can be may also be statements. Conversely, when surrounded in parenthesis 
-expressions become primaries.
+yet can be may also be statements.
+
+Conversely, when surrounded in parenthesis expressions become primaries.
 
 Scoping rules differ considerably between programming languages. Consider 
 substitution. In C, the value of expressions can be used in substitutions 
