@@ -1,0 +1,37 @@
+--- 
+ja: 
+  :iso_language: ja-JA
+  :can_be_destination_language: false
+  :chapter_name: chapter%02d.txt
+fr: 
+  :iso_language: fr-FR
+  :can_be_destination_language: true
+  :chapter_name: chapitre%02d.txt
+  :translated_by_re: !ruby/regexp /^Traduction (.+)$/
+  :not_translated: (non traduit)
+  :footer: |
+    <hr>
+    
+    L'oeuvre originale est sous Copyright &copy; 2002 - 2004 Minero AOKI.<br>
+    Traduction $tag(translated by)$<br>
+    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/"><img alt="Creative Commons License" border="0" src="images/somerights20.fr.png"/></a><br/>Cette oeuvre est sous la <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/deed.fr">Licence Creative Commons Attribution-NonCommercial-ShareAlike2.5</a>.
+    
+    </body>
+    </html>
+
+en: 
+  :iso_language: en-US
+  :can_be_destination_language: true
+  :chapter_name: chapter%02d.txt
+  :translated_by_re: !ruby/regexp /^Translated by (.+)$/
+  :not_translated: (not translated)
+  :footer: |
+    <hr>
+    
+    The original work is Copyright &copy; 2002 - 2004 Minero AOKI.<br />
+    Translated by $tag(translated by)$<br />
+    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/"><img alt="Creative Commons License" border="0" src="images/somerights20.png"/></a><br/>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/">Creative Commons Attribution-NonCommercial-ShareAlike2.5 License</a>.
+    
+    </body>
+    </html>
+

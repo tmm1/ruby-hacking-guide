@@ -1,20 +1,64 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*- vim:set encoding=utf-8:
 # TODO:
-# - cleanup (and remove dependency with rhg_html_gen)
+# - cleanup
 # - images
-# - when generating the output data, if Japanese = English, add in the English something like "(To translate)"
+# - when generating the output data, if source language = destination language, add in the destination language something like "(to translate)" (and make it depend on the language)
 $KCODE = 'u'
 
-ISOLanguage = 'en-US'
-
 $LOAD_PATH.unshift('../lib')
-require 'rhg_html_gen'
+require 'redcloth'
+require 'yaml'
+
+Languages = YAML::load(IO.read('languages.yml'))
+AvailableDestinationLanguages = Languages.keys.select { |lang| Languages[lang][:can_be_destination_language] }.sort
+AvailableSourceLanguages = Languages.keys.sort
+
+def syntax
+	puts "syntax: #{$0} source_language destination_language chapter_number"
+	puts "where the source language is one of the following: #{AvailableSourceLanguages.join(', ')}"
+	puts "and the destination language is one of the following: #{AvailableDestinationLanguages.join(', ')}"
+	exit 1
+end
+
+syntax if ARGV.length != 3 or not AvailableSourceLanguages.include?(ARGV[0]) or not AvailableDestinationLanguages.include?(ARGV[1]) or ARGV[2].to_i == 0
+src_lang = ARGV[0]
+dst_lang = ARGV[1]
+chapter_num = ARGV[2].to_i
+
+$tags = {}
+
+HEADER = <<EOS
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="#{Languages[dst_lang][:iso_language]}">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Language" content="#{Languages[dst_lang][:iso_language]}">
+  <link rel="stylesheet" type="text/css" href="rhg.css">
+  <title>$tag(title)$</title>
+</head>
+<body>
+EOS
+FOOTER = Languages[dst_lang][:footer]
 
 COMMENT_RE = /\$comment\((.+?)\)\$/
 AUTOLINK_RE = %r{(^|[^:])\b((?:ht|f)tp://\S+?)([^\w\/;]*?)(?=\s|<|$)}
 NEW_CODE_RE = /`([^<]*?)`/m
 TAG_RE = /\$tag\((.+?)\)\$/
+BLOCK_REGROUPING_RE = /^(h[1-9]\.|<pre\b|<p\b|▼)/
+
+# manages tags
+def replace_tags(text)
+	text.gsub(TAG_RE) do |m|
+		tag_name = $~[1]
+		if $tags[tag_name]
+			$tags[tag_name]
+		else
+			puts "Warning: The tag #{tag_name} is not defined"
+			''
+		end
+	end
+end
 
 AUTO_CONV_ENDING=<<END
 <hr>
@@ -29,45 +73,13 @@ AUTO_CONV_ENDING=<<END
 Copyright (c) 2002-2004 Minero Aoki, All rights reserved.
 END
 
-TranslatedByRE = /^Translated by (.+)$/
-
-def rhg_redcloth_replace(text)
-	text = text.dup
-  if md = TranslatedByRE.match(text)
-    $tags['translated by'] = md[1]
-    text.sub!(TranslatedByRE, '')
-	end
-	text.sub!(AUTO_CONV_ENDING, '') # remove the ending in the automatically generated Japanese files
-  text.gsub!(COMMENT_RE) { |m| '' } # remove comments
-	text.gsub(TAG_RE) do |m| # manages tags
-		tag_name = $~[1]
-		if $tags[tag_name]
-			$tags[tag_name]
-		else
-			puts "Warning: The tag #{tag_name} is not defined"
-			''
-		end
-  end
-	fig_counter = 0
-	text.gsub!(RedCloth::IMAGE_RE) do |m| # must be done before the `` replacement
-		fig_counter += 1
-		stln,algn,atts,url,title,href,href_a1,href_a2 = $~[1..8]
-		#puts "Warning: the images used the the RHG should be PNGs, not JPEGs" if /\.jpe?g$/i.match(url)
-		"\n\n<p style=\"text-align:center;\">\n#{m.gsub(/`/, '')}<br />Figure #{fig_counter}: #{title}\n</p>\n\n"
-	end
-  text.gsub!(NEW_CODE_RE) { |m| "<code>#{$~[1]}</code>" }
-	text.gsub!(AUTOLINK_RE) do |m|
-		before, address, after = $~[1..3]
-		"#{before}\"#{address}\":#{address}#{after}"
-	end
-	text
-end
-
 class Blocks
-	def initialize(filename)
-		@data = rhg_redcloth_replace(IO.read(filename)).split(/\n/).map { |l| l.rstrip }
-		@boundaries = []
+	def initialize(filename, lang, is_destination_lang)
+		@lang = lang
+		@is_destination_lang = is_destination_lang
+		@data = rhg_redcloth_replace(filename)
 
+		@boundaries = []
 		find_boundaries
 	end
 
@@ -77,6 +89,10 @@ class Blocks
 
 	def [](i)
 		@data[@boundaries[i]].join("\n")
+	end
+
+	def each_from(i)
+		i.upto(self.length-1) { yield self[i] }
 	end
 
 	def regroup_with_following(i)
@@ -114,85 +130,119 @@ private
 			end
 		end
 	end
+
+	# transforms the modified RHG RedCloth syntax to normal RedCloth
+	# and returns an array of lines (without end of lines)
+	def rhg_redcloth_replace(filename)
+		text = IO.read(filename)
+		translated_by_re = Languages[@lang][:translated_by_re] # note: translated_by_re is not defined for Japanese
+		if translated_by_re and md = translated_by_re.match(text)
+			$tags['translated by'] = md[1] if @is_destination_lang
+			text.sub!(translated_by_re, '')
+		end
+		text.sub!(AUTO_CONV_ENDING, '') if @lang == 'ja' # remove the ending in the automatically generated Japanese files if it's there
+		text.gsub!(COMMENT_RE) { |m| '' } # remove comments
+		text = replace_tags(text)
+		fig_counter = 0
+		text.gsub!(RedCloth::IMAGE_RE) do |m| # must be done before the `` replacement
+			fig_counter += 1
+			stln,algn,atts,url,title,href,href_a1,href_a2 = $~[1..8]
+			#puts "Warning: the images used the the RHG should be PNGs, not JPEGs" if /\.jpe?g$/i.match(url)
+			"\n\n<p style=\"text-align:center;\">\n#{m.gsub(/`/, '')}<br />Figure #{fig_counter}: #{title}\n</p>\n\n"
+		end
+		text.gsub!(NEW_CODE_RE) { |m| "<code>#{$~[1]}</code>" }
+		text.gsub!(AUTOLINK_RE) do |m|
+			before, address, after = $~[1..3]
+			"#{before}\"#{address}\":#{address}#{after}"
+		end
+		text.split(/\n/).map { |l| l.rstrip }
+	end
 end
 
-chapter_num = sprintf("%02d", ARGV[0].to_i)
+dst_lang_file_name = "../#{dst_lang}/#{sprintf(Languages[dst_lang][:chapter_name], chapter_num)}"
+src_lang_file_name = "../#{src_lang}/#{sprintf(Languages[src_lang][:chapter_name], chapter_num)}"
 
-en_file_name = "../en/chapter#{chapter_num}.txt"
-ja_file_name = "../ja/chapter#{chapter_num}.txt"
-# if the English file does not exist yet, just use the Japanese one as source
-if File.exists?(en_file_name)
-  blocks_en = Blocks.new(en_file_name)
+blocks_src_lang = Blocks.new(src_lang_file_name, src_lang, false)
+# if the file in the destination language does not exist yet, just use the one in the source language as source
+if File.exists?(dst_lang_file_name)
+  blocks_dst_lang = Blocks.new(dst_lang_file_name, dst_lang, true)
 else
-  $tags['translated by'] = '(not translated yet)'
-  blocks_en = Blocks.new(ja_file_name)
+	puts "warning: the translation is not available for this chapter"
+  blocks_dst_lang = Blocks.new(src_lang_file_name, src_lang, false)
+  $tags['translated by'] = Languages[dst_lang][:not_translated]
 end
-blocks_ja = Blocks.new(ja_file_name)
 
-BLOCK_REGROUPING_RE = /^(h[1-9]\.|<pre|▼)/
-
+# the following code tries to have as many blocks of text in each language
+# it searches for anchors (defined by the BLOCK_REGROUPING_RE regexp) and tries to aligns the anchors in both languages
 i = 0
 regroup_pos = 0
-while i < blocks_ja.length and i < blocks_en.length
-	block_ja = blocks_ja[i]
-	block_en = blocks_en[i]
-	if BLOCK_REGROUPING_RE.match(block_ja)
-		if BLOCK_REGROUPING_RE.match(block_en)
-			regroup_pos = i
-			i += 1
+while i < blocks_src_lang.length and i < blocks_dst_lang.length
+	block_src_lang = blocks_src_lang[i]
+	block_dst_lang = blocks_dst_lang[i]
+	if md_src = BLOCK_REGROUPING_RE.match(block_src_lang)
+		if md_dst = BLOCK_REGROUPING_RE.match(block_dst_lang)
+			if md_src[0] != md_dst[0]
+				# if the anchors found at the current position are different in the two languages,
+				# we search for the next anchor to know which side is the more likely to need a regroupment
+				next_md_src = nil
+				next_md_dst = nil
+				blocks_src_lang.each_from(i+1) { |block| break if next_md_src = BLOCK_REGROUPING_RE.match(block) }
+				blocks_dst_lang.each_from(i+1) { |block| break if next_md_dst = BLOCK_REGROUPING_RE.match(block) }
+				if next_md_src and next_md_src[0] == md_dst[0]
+					blocks_src_lang.regroup_with_following(regroup_pos)
+				elsif next_md_dst and next_md_dst[0] == md_src[0]
+					blocks_dst_lang.regroup_with_following(regroup_pos)
+				else
+					i += 1
+					regroup_pos = i
+				end
+			else
+				i += 1
+				regroup_pos = i
+			end
 		else
-			blocks_en.regroup_with_following(regroup_pos)
+			blocks_dst_lang.regroup_with_following(regroup_pos)
 		end
-	elsif BLOCK_REGROUPING_RE.match(block_en)
-		blocks_ja.regroup_with_following(regroup_pos)
+	elsif md_dst = BLOCK_REGROUPING_RE.match(block_dst_lang)
+		blocks_src_lang.regroup_with_following(regroup_pos)
 	else
 		i += 1
 	end
 end
 
 # regroup the last blocks to have the same number of blocks in both
-blocks_en.regroup_with_following(blocks_en.length-2) while blocks_ja.length < blocks_en.length
-blocks_ja.regroup_with_following(blocks_ja.length-2) while blocks_en.length < blocks_ja.length
+blocks_dst_lang.regroup_with_following(blocks_dst_lang.length-2) while blocks_src_lang.length < blocks_dst_lang.length
+blocks_src_lang.regroup_with_following(blocks_src_lang.length-2) while blocks_dst_lang.length < blocks_src_lang.length
 
-blocks_en.each do |b|
+blocks_dst_lang.each do |b|
 	if md = /h1\.\s*(.+)$/.match(b)
-    $tags['title'] = md[1].gsub(/(<[^>]*>|`)/, '') # remove markup and backquotes from the title
+		$tags['title'] = md[1].gsub(/(<[^>]*>|`)/, '') # remove markup and backquotes from the title
 		break
-  end
+	end
 end
 if not $tags['title']
-	STDERR.puts "error: no h1 section in source file"
+	STDERR.puts "error: no h1 section in the file in the destination language"
 	return
 end
 
-File.open("chapter#{chapter_num}.txt", "w") do |f|
-	f.puts "<table>"
-	blocks_ja.length.times do |i|
-		f.puts "<tr><td>"
-		f.puts
-		f.puts blocks_en[i]
-		f.puts
-		f.puts "</td><td>"
-		f.puts
-		f.puts blocks_ja[i]
-		f.puts
-		f.print "</td></tr>"
-	end
-	f.puts
-	f.puts "</table>"
+base_file_name = sprintf("chapter%02d_#{src_lang}_#{dst_lang}", chapter_num)
+html_file = "#{base_file_name}.html"
+redcloth_file = "#{base_file_name}.redcloth.txt"
+
+redcloth_text = '<table>'
+blocks_src_lang.length.times do |i|
+	redcloth_text << "<tr><td>\n\n#{blocks_dst_lang[i]}\n\n</td>"
+	redcloth_text << "<td>\n\n#{blocks_src_lang[i]}\n\n</td></tr>\n"
 end
+redcloth_text << "\n</table>\n"
 
-FOOTER = <<EOS
-<hr>
+File.open(redcloth_file, "w") do |f| f.puts redcloth_text end
 
-The original work is Copyright &copy; 2002 - 2004 Minero AOKI.<br />
-Translated by #{$tags['translated by']}<br />
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/"><img alt="Creative Commons License" border="0" src="images/somerights20.png"/></a><br/>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/">Creative Commons Attribution-NonCommercial-ShareAlike2.5 License</a>.
+r = RedCloth.new(redcloth_text)
 
-</body>
-</html>
-EOS
-
-RedClothRules = [ :textile ]
-
-generate_html("chapter#{chapter_num}.html", "chapter#{chapter_num}.txt")
+File.open(html_file, 'w') do |io|
+	puts "Generating '#{$tags['title']}' - #{html_file}..."
+	io.write(replace_tags(HEADER))
+	io.write(r.to_html)
+	io.write(replace_tags(FOOTER))
+end 
